@@ -61,7 +61,7 @@ curl -s -X GET "http://127.0.0.1:8000/game/"
 2) Create a game
 
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/game/" -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>" -d '{"title":"My First Game"}'
+curl -s -X POST "http://127.0.0.1:8000/game/?title=MyNewGame" -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>"
 ```
 
 3) Get a game by id

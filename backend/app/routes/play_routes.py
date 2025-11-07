@@ -28,6 +28,12 @@ def player_play(message: messageIn, authorization: str = Header(None), db: Sessi
     except ValueError as e:
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail=str(e))
+    except RuntimeError as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=503, detail=str(e))
 
 @play_router.get("/narrator/{game_id}", response_model=messageOut)
 def narrator_play(game_id: str, authorization: str = Header(None), db: Session = Depends(get_db)):
@@ -48,6 +54,13 @@ def narrator_play(game_id: str, authorization: str = Header(None), db: Session =
     except ValueError as e:
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail=str(e))
+    except RuntimeError as e:
+        from fastapi import HTTPException
+        # Downstream Ollama connection issues -> service unavailable
+        raise HTTPException(status_code=503, detail=str(e))
 
 
 router = APIRouter()
