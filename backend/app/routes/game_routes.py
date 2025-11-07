@@ -16,7 +16,7 @@ def get_games(db: Session = Depends(get_db)):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@game_router.post("/", response_model=GameOut, status_code=status.HTTP_201_CREATED)
+@game_router.post("/", response_model=GameOut)
 def create_game(title: str, authorization: str = Header(None), db: Session = Depends(get_db)):
     if not authorization:
         raise HTTPException(status_code=401, detail="Missing Authorization header")

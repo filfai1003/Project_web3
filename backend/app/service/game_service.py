@@ -11,6 +11,7 @@ def create_game(db: Session, title: str, owner_id: str) -> Dict:
         "owner_id": game.owner_id,
         "title": game.title,
         "created_at": game.created_at,
+        "interactions": [],
     }
 
 
@@ -18,11 +19,15 @@ def get_game(db: Session, game_id: str) -> Dict:
     game = game_repo.get_game_by_id(db, game_id)
     if not game:
         raise ValueError("Game not found")
+    interactions = game_repo.get_interactions_for_game(db, game_id)
     return {
         "game_id": game.game_id,
         "owner_id": game.owner_id,
         "title": game.title,
         "created_at": game.created_at,
+        "interactions": [
+            {"sender": i.sender, "content": i.content, "created_at": i.created_at} for i in interactions
+        ],
     }
 
 
@@ -34,6 +39,10 @@ def get_games(db: Session, limit: int = 100) -> List[Dict]:
             "owner_id": g.owner_id,
             "title": g.title,
             "created_at": g.created_at,
+            "interactions": [
+                {"sender": i.sender, "content": i.content, "created_at": i.created_at}
+                for i in game_repo.get_interactions_for_game(db, g.game_id)
+            ],
         }
         for g in games
     ]
@@ -47,6 +56,10 @@ def get_games_by_owner(db: Session, owner_id: str) -> List[Dict]:
             "owner_id": g.owner_id,
             "title": g.title,
             "created_at": g.created_at,
+            "interactions": [
+                {"sender": i.sender, "content": i.content, "created_at": i.created_at}
+                for i in game_repo.get_interactions_for_game(db, g.game_id)
+            ],
         }
         for g in games
     ]

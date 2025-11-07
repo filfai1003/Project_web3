@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from ..repository import user_repo
 from ..schemas.oauth_schema import SignUpIn, LoginIn
-from ..outil.auth_utils import (
+from .. util.auth_utils import (
 	get_password_hash,
 	verify_password,
 	create_access_token,
