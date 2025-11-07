@@ -1,20 +1,20 @@
-### TODO project presentation
+# <PROJECT NAME>
 
 ...
 
-### Execution
+## Execution
 
 ...
 
 
-### Code
+## Code
 
 ...
 
-## Backend
+### Backend
 
 ...
 
-## Frontend
+### Frontend
 
 ...
