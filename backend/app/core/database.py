@@ -1,14 +1,16 @@
-"""
-Placeholder for database initialization and session management.
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-Add your ORM wiring (SQLAlchemy, Tortoise, etc.) here when needed.
-This file intentionally contains only a small placeholder so the project
-structure is clear during initial development.
-"""
+# Using a local SQLite DB for simplicity. Change URL for production (Postgres, etc.).
+SQLALCHEMY_DATABASE_URL = "sqlite:///./backend_db.sqlite"
 
-def get_db_placeholder():
-    """Return a placeholder object for DB dependency injection.
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-    Replace this function with real DB session generator later.
-    """
-    return None
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

@@ -1,4 +1,7 @@
-from pydantic import BaseSettings
+try:
+    from pydantic_settings import BaseSettings
+except Exception:
+    from pydantic import BaseSettings
 from typing import List
 
 
@@ -12,6 +15,10 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["*"]
 
     PORT: int = 8000
+
+    # JWT / Auth settings
+    JWT_SECRET: str = "SUPER-SECRET-KEY" # TODO change
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
 
 settings = Settings()
