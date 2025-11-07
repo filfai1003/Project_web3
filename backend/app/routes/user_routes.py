@@ -20,7 +20,6 @@ def get_user(user_id: str, authorization: str = Header(None), db: Session = Depe
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid Authorization header")
     try:
-        # validate token and get token owner id
         auth_info = user_service.authenticate(token, db)
         token_user_id = auth_info.get("user_id")
         return user_service.get_user(db, user_id, token_user_id)
