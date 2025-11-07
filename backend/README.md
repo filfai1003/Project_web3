@@ -10,9 +10,6 @@ python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000
 
 Base URL: `http://127.0.0.1:8000`
 
-Notes
-- Replace `<TOKEN>` and `<USER_ID>` in the examples with actual values returned by the API.
-
 ## oauth
 
 1) Signup — create a new user
@@ -41,21 +38,19 @@ curl -s -X GET "http://127.0.0.1:8000/auth/authenticate" -H "Authorization: Bear
 
 ## user
 
-1) Get user by username — retrieve user public info by username (requires Authorization header)
+1) Get user by username — retrieve user public info by username
 
 ```bash
 curl -s -X GET "http://127.0.0.1:8000/user/username/filfai" -H "Authorization: Bearer <TOKEN>"
 ```
 
-2) Get user — retrieve user public info (requires Authorization header)
+2) Get user — retrieve user public info
 
 ```bash
 curl -s -X GET "http://127.0.0.1:8000/user/<USER_ID>" -H "Authorization: Bearer <TOKEN>"
 ```
 
 ## game
-
-Endpoints for managing games. The `owner_id` used when creating a game must be an existing user id (see `/auth/signup`).
 
 1) List games
 
@@ -81,7 +76,7 @@ curl -s -X GET "http://127.0.0.1:8000/game/<GAME_ID>"
 curl -s -X GET "http://127.0.0.1:8000/game/owner/<OWNER_ID>"
 ```
 
-5) Delete a game (only owner)
+5) Delete a game
 
 ```bash
 curl -s -X DELETE "http://127.0.0.1:8000/game/<GAME_ID>" -H "Authorization: Bearer <TOKEN>"
