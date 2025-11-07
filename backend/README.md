@@ -12,7 +12,6 @@ Base URL: `http://127.0.0.1:8000`
 
 Notes
 - Replace `<TOKEN>` and `<USER_ID>` in the examples with actual values returned by the API.
-- For pretty JSON parsing in examples we use `jq` (Linux/macOS). On Windows you can install `jq` or inspect output directly.
 
 1) Signup — create a new user
 
