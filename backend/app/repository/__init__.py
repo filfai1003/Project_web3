@@ -1,1 +1,1 @@
-from . import user_repo
+from . import game_repo, user_repo

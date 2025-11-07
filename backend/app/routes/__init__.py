@@ -1,1 +1,1 @@
-from . import oauth_routes, user_routes 
+from . import game_routes, oauth_routes, user_routes 

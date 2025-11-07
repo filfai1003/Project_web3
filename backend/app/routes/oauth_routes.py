@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
 
@@ -7,10 +6,10 @@ from ..schemas.oauth_schema import SignUpIn, LoginIn, Token
 from ..service import oauth_service
 
 
-auth_router = APIRouter(prefix="/auth", tags=["auth"])
+oauth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@auth_router.post("/signup", response_model=Token)
+@oauth_router.post("/signup", response_model=Token)
 def signup(user_in: SignUpIn, db: Session = Depends(get_db)):
     try:
         return oauth_service.signup(db, user_in)
@@ -18,7 +17,7 @@ def signup(user_in: SignUpIn, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@auth_router.post("/login", response_model=Token)
+@oauth_router.post("/login", response_model=Token)
 def login(payload: LoginIn, db: Session = Depends(get_db)):
     try:
         return oauth_service.login(db, payload)
@@ -26,7 +25,7 @@ def login(payload: LoginIn, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
 
-@auth_router.get("/authenticate", response_model=Token)
+@oauth_router.get("/authenticate", response_model=Token)
 def authenticate(authorization: str = Header(None), db: Session = Depends(get_db)):
     if not authorization:
         raise HTTPException(status_code=401, detail="Missing Authorization header")
@@ -43,4 +42,4 @@ def authenticate(authorization: str = Header(None), db: Session = Depends(get_db
 
 
 router = APIRouter()
-router.include_router(auth_router)
+router.include_router(oauth_router)
