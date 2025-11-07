@@ -1,9 +1,5 @@
-from typing import Optional
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field
 
-
-class GameCreateIn(BaseModel):
-    title: str = Field(..., description="Title of the game")
 
 class GameOut(BaseModel):
     game_id: str = Field(..., description="Unique identifier for the game")
