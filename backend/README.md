@@ -49,15 +49,3 @@ curl -s -X GET "http://127.0.0.1:8000/user/<USER_ID>"
 ```bash
 curl -s -X GET "http://127.0.0.1:8000/user/username/filfai"
 ```
-
-Small convenience: extract the access token into a shell variable (bash + jq)
-
-```bash
-TOKEN=$(curl -s -X POST "http://127.0.0.1:8000/auth/login" -H "Content-Type: application/json" -d '{"username":"filfai","password":"secret"}' | jq -r .access_token)
-
-echo $TOKEN
-
-curl -s -H "Authorization: Bearer $TOKEN" "http://127.0.0.1:8000/user/<USER_ID>" | jq
-```
-
-If you want, I can also add these examples to the top-level `README.md` or create Postman/HTTPie snippets.
