@@ -38,14 +38,14 @@ curl -s -X POST "http://127.0.0.1:8000/auth/login" -H "Content-Type: application
 curl -s -X GET "http://127.0.0.1:8000/auth/authenticate" -H "Authorization: Bearer <TOKEN>"
 ```
 
-5.a) Get user — retrieve user public info (requires Authorization header)
-
-```bash
-curl -s -X GET "http://127.0.0.1:8000/user/<USER_ID>"
-```
-
-5.b) Get user by username — retrieve user public info by username
+5.a) Get user by username — retrieve user public info by username
 
 ```bash
 curl -s -X GET "http://127.0.0.1:8000/user/username/filfai"
+```
+
+5.b) Get user — retrieve user public info (requires Authorization header)
+
+```bash
+curl -s -X GET "http://127.0.0.1:8000/user/<USER_ID>"
 ```
