@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     # JWT / Auth settings
     JWT_SECRET: str = "SUPER-SECRET-KEY" # TODO change
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    ACCESS_TOKEN_EXPIRE_HOURS: int = 60
 
 
 settings = Settings()

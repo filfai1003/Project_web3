@@ -18,43 +18,36 @@ Notes
 
 ```bash
 curl -s -X POST "http://127.0.0.1:8000/auth/signup" -H "Content-Type: application/json" -d '{"username":"filfai","email":"filfai@example.com","password":"secret"}'
-# Example response:
-# {"access_token":"ey...","token_type":"bearer","user_id":"<USER_ID>"}
 ```
 
 2) Login — by username
 
 ```bash
 curl -s -X POST "http://127.0.0.1:8000/auth/login" -H "Content-Type: application/json" -d '{"username":"filfai","password":"secret"}'
-# Example response: {"access_token":"ey...","token_type":"bearer","user_id":"<USER_ID>"}
 ```
 
 3) Login — by email
 
 ```bash
 curl -s -X POST "http://127.0.0.1:8000/auth/login" -H "Content-Type: application/json" -d '{"email":"filfai@example.com","password":"secret"}'
-# Example response: {"access_token":"ey...","token_type":"bearer","user_id":"<USER_ID>"}
 ```
 
 4) Authenticate — validate/refresh token
 
 ```bash
 curl -s -X GET "http://127.0.0.1:8000/auth/authenticate" -H "Authorization: Bearer <TOKEN>"
-# Example response: {"access_token":"ey...","token_type":"bearer","user_id":"<USER_ID>"}
 ```
 
-5) Get user — retrieve user public info (requires Authorization header)
+5.a) Get user — retrieve user public info (requires Authorization header)
 
 ```bash
-curl -s -X GET "http://127.0.0.1:8000/user/<USER_ID>" -H "Authorization: Bearer <TOKEN>"
-# Example response:
-# {
-#   "user_id":"<USER_ID>",
-#   "username":"filfai",
-#   "email":"filfai@example.com",
-#   "is_active": true,
-#   "created_at": "2025-11-07T12:34:56.789Z"
-# }
+curl -s -X GET "http://127.0.0.1:8000/user/<USER_ID>"
+```
+
+5.b) Get user by username — retrieve user public info by username
+
+```bash
+curl -s -X GET "http://127.0.0.1:8000/user/username/filfai"
 ```
 
 Small convenience: extract the access token into a shell variable (bash + jq)
@@ -64,20 +57,7 @@ TOKEN=$(curl -s -X POST "http://127.0.0.1:8000/auth/login" -H "Content-Type: app
 
 echo $TOKEN
 
-# then use it
 curl -s -H "Authorization: Bearer $TOKEN" "http://127.0.0.1:8000/user/<USER_ID>" | jq
-```
-
-Windows PowerShell (example to get token without jq)
-
-```powershell
-$resp = curl -Method Post -Uri "http://127.0.0.1:8000/auth/login" -Body (@{ username = 'filfai'; password = 'secret' } | ConvertTo-Json) -ContentType 'application/json'
-$json = $resp.Content | ConvertFrom-Json
-$token = $json.access_token
-Write-Host $token
-
-# Use token in subsequent request
-curl -Method Get -Uri "http://127.0.0.1:8000/user/$($json.user_id)" -Headers @{ Authorization = "Bearer $token" }
 ```
 
 If you want, I can also add these examples to the top-level `README.md` or create Postman/HTTPie snippets.
