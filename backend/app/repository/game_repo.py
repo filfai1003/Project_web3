@@ -36,3 +36,12 @@ def get_games(db: Session, limit: int = 100):
 
 def get_games_by_owner(db: Session, owner_id: str):
     return db.query(GameModel).filter(GameModel.owner_id == owner_id).all()
+
+
+def delete_game_by_id(db: Session, game_id: str):
+    game = db.query(GameModel).filter(GameModel.game_id == game_id).first()
+    if not game:
+        return None
+    db.delete(game)
+    db.commit()
+    return game

@@ -50,3 +50,15 @@ def get_games_by_owner(db: Session, owner_id: str) -> List[Dict]:
         }
         for g in games
     ]
+
+
+def delete_game(db: Session, game_id: str, token_user_id: str) -> Dict:
+    game = game_repo.get_game_by_id(db, game_id)
+    if not game:
+        raise ValueError("Game not found")
+    if game.owner_id != token_user_id:
+        raise PermissionError("Not the owner")
+    deleted = game_repo.delete_game_by_id(db, game_id)
+    if not deleted:
+        raise ValueError("Game not found")
+    return {"game_id": game_id, "deleted": True}

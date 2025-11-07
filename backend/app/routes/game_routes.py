@@ -48,5 +48,27 @@ def get_games_by_owner(owner_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=str(e))
 
 
+@game_router.delete("/{game_id}")
+def delete_game(game_id: str, authorization: str = Header(None), db: Session = Depends(get_db)):
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing Authorization header")
+    try:
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            raise ValueError("Invalid auth scheme")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid Authorization header")
+    try:
+        auth_info = oauth_service.authenticate(token, db)
+        token_user_id = auth_info.get("user_id")
+        return game_service.delete_game(db, game_id, token_user_id)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=str(e))
+
+
 router = APIRouter()
 router.include_router(game_router)

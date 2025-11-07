@@ -41,16 +41,16 @@ curl -s -X GET "http://127.0.0.1:8000/auth/authenticate" -H "Authorization: Bear
 
 ## user
 
-5.a) Get user by username — retrieve user public info by username
+1) Get user by username — retrieve user public info by username (requires Authorization header)
 
 ```bash
-curl -s -X GET "http://127.0.0.1:8000/user/username/filfai"
+curl -s -X GET "http://127.0.0.1:8000/user/username/filfai" -H "Authorization: Bearer <TOKEN>"
 ```
 
-5.b) Get user — retrieve user public info (requires Authorization header)
+2) Get user — retrieve user public info (requires Authorization header)
 
 ```bash
-curl -s -X GET "http://127.0.0.1:8000/user/<USER_ID>"
+curl -s -X GET "http://127.0.0.1:8000/user/<USER_ID>" -H "Authorization: Bearer <TOKEN>"
 ```
 
 ## game
@@ -79,4 +79,10 @@ curl -s -X GET "http://127.0.0.1:8000/game/<GAME_ID>"
 
 ```bash
 curl -s -X GET "http://127.0.0.1:8000/game/owner/<OWNER_ID>"
+```
+
+5) Delete a game (only owner)
+
+```bash
+curl -s -X DELETE "http://127.0.0.1:8000/game/<GAME_ID>" -H "Authorization: Bearer <TOKEN>"
 ```
