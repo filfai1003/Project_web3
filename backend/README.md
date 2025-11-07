@@ -80,6 +80,7 @@ curl -s -X GET "http://127.0.0.1:8000/game/owner/<OWNER_ID>"
 
 ```bash
 curl -s -X DELETE "http://127.0.0.1:8000/game/<GAME_ID>" -H "Authorization: Bearer <TOKEN>"
+```
 
 ## play
 
