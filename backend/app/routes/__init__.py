@@ -1,1 +1,1 @@
-from . import user_routes
+from . import oauth_routes, user_routes 

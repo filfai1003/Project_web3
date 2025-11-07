@@ -1,1 +1,1 @@
-from . import user_service
+from . import oauth_service, user_service

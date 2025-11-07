@@ -1,1 +1,1 @@
-from . import user_schema
+from . import oauth_schema, user_schema
