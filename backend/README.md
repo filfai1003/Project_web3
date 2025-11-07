@@ -17,9 +17,7 @@ Notes
 1) Signup — create a new user
 
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/auth/signup" \
-  -H "Content-Type: application/json" \
-  -d '{"username":"filfai","email":"filfai@example.com","password":"secret"}'
+curl -s -X POST "http://127.0.0.1:8000/auth/signup" -H "Content-Type: application/json" -d '{"username":"filfai","email":"filfai@example.com","password":"secret"}'
 # Example response:
 # {"access_token":"ey...","token_type":"bearer","user_id":"<USER_ID>"}
 ```
@@ -27,34 +25,28 @@ curl -s -X POST "http://127.0.0.1:8000/auth/signup" \
 2) Login — by username
 
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{"username":"filfai","password":"secret"}'
+curl -s -X POST "http://127.0.0.1:8000/auth/login" -H "Content-Type: application/json" -d '{"username":"filfai","password":"secret"}'
 # Example response: {"access_token":"ey...","token_type":"bearer","user_id":"<USER_ID>"}
 ```
 
 3) Login — by email
 
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{"email":"filfai@example.com","password":"secret"}'
+curl -s -X POST "http://127.0.0.1:8000/auth/login" -H "Content-Type: application/json" -d '{"email":"filfai@example.com","password":"secret"}'
 # Example response: {"access_token":"ey...","token_type":"bearer","user_id":"<USER_ID>"}
 ```
 
 4) Authenticate — validate/refresh token
 
 ```bash
-curl -s -X GET "http://127.0.0.1:8000/auth/authenticate" \
-  -H "Authorization: Bearer <TOKEN>"
+curl -s -X GET "http://127.0.0.1:8000/auth/authenticate" -H "Authorization: Bearer <TOKEN>"
 # Example response: {"access_token":"ey...","token_type":"bearer","user_id":"<USER_ID>"}
 ```
 
 5) Get user — retrieve user public info (requires Authorization header)
 
 ```bash
-curl -s -X GET "http://127.0.0.1:8000/user/<USER_ID>" \
-  -H "Authorization: Bearer <TOKEN>"
+curl -s -X GET "http://127.0.0.1:8000/user/<USER_ID>" -H "Authorization: Bearer <TOKEN>"
 # Example response:
 # {
 #   "user_id":"<USER_ID>",
@@ -68,9 +60,7 @@ curl -s -X GET "http://127.0.0.1:8000/user/<USER_ID>" \
 Small convenience: extract the access token into a shell variable (bash + jq)
 
 ```bash
-TOKEN=$(curl -s -X POST "http://127.0.0.1:8000/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{"username":"filfai","password":"secret"}' | jq -r .access_token)
+TOKEN=$(curl -s -X POST "http://127.0.0.1:8000/auth/login" -H "Content-Type: application/json" -d '{"username":"filfai","password":"secret"}' | jq -r .access_token)
 
 echo $TOKEN
 
