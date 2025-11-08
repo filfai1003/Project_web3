@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 from pydantic import BaseModel, Field
 
@@ -5,7 +6,7 @@ from pydantic import BaseModel, Field
 class InteractionOut(BaseModel):
     sender: str = Field(..., description="Sender of the interaction: player or ia")
     content: str = Field(..., description="Interaction content")
-    created_at: str = Field(..., description="Timestamp of the interaction")
+    created_at: datetime = Field(..., description="Timestamp of the interaction")
 
 
 class GameOut(BaseModel):

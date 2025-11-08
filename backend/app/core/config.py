@@ -11,9 +11,6 @@ class Settings(BaseSettings):
     DEFAULT_MODEL: str = 'gemma3:4b'
     USE_GPU: bool = True
 
-    # TODO Replace with proper CORS settings
-    CORS_ORIGINS: List[str] = ["*"]
-
     PORT: int = 8000
 
     # JWT / Auth settings
