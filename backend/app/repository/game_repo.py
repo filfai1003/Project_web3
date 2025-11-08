@@ -1,5 +1,5 @@
-from sqlalchemy import Column, String, DateTime
-from sqlalchemy.orm import Session
+from sqlalchemy import Column, String, DateTime, ForeignKey
+from sqlalchemy.orm import Session, relationship
 from datetime import datetime
 import uuid
 
@@ -12,6 +12,7 @@ class GameModel(Base):
     owner_id = Column(String, index=True, nullable=False)
     title = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    interactions = relationship("InteractionModel", back_populates="game", cascade="all, delete-orphan")
 
 
 def create_game(db: Session, owner_id: str, title: str):
@@ -45,3 +46,31 @@ def delete_game_by_id(db: Session, game_id: str):
     db.delete(game)
     db.commit()
     return game
+
+
+class InteractionModel(Base):
+    __tablename__ = "interactions"
+    interaction_id = Column(String, primary_key=True, index=True)
+    game_id = Column(String, ForeignKey("games.game_id"), nullable=False, index=True)
+    sender = Column(String, nullable=False)
+    content = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    game = relationship("GameModel", back_populates="interactions")
+
+
+def add_interaction(db: Session, game_id: str, sender: str, content: str):
+    inter = InteractionModel(
+        interaction_id=str(uuid.uuid4()),
+        game_id=game_id,
+        sender=sender,
+        content=content,
+    )
+    db.add(inter)
+    db.commit()
+    db.refresh(inter)
+    return inter
+
+
+def get_interactions_for_game(db: Session, game_id: str):
+    return db.query(InteractionModel).filter(InteractionModel.game_id == game_id).order_by(InteractionModel.created_at.asc()).all()

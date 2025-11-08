@@ -8,8 +8,8 @@ from typing import List
 class Settings(BaseSettings):
     """Application settings centralized here. Can be overridden by env vars."""
 
-    DEFAULT_MODEL: str = "Llama-2-3B"
-    TIMEOUT_SECONDS: int = 30
+    DEFAULT_MODEL: str = 'gemma3:4b'
+    USE_GPU: bool = True
 
     # TODO Replace with proper CORS settings
     CORS_ORIGINS: List[str] = ["*"]

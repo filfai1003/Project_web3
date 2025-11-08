@@ -61,7 +61,7 @@ curl -s -X GET "http://127.0.0.1:8000/game/"
 2) Create a game
 
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/game/" -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>" -d '{"title":"My First Game"}'
+curl -s -X POST "http://127.0.0.1:8000/game/?title=MyNewGame" -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>"
 ```
 
 3) Get a game by id
@@ -80,4 +80,18 @@ curl -s -X GET "http://127.0.0.1:8000/game/owner/<OWNER_ID>"
 
 ```bash
 curl -s -X DELETE "http://127.0.0.1:8000/game/<GAME_ID>" -H "Authorization: Bearer <TOKEN>"
+```
+
+## play
+
+1) Player sends a message
+
+```bash
+curl -s -X POST "http://127.0.0.1:8000/play/player" -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>" -d '{"game_id":"<GAME_ID>", "message":"I open the wooden chest and look inside."}'
+```
+
+2) Narrator (AI) generates the next reply
+
+```bash
+curl -s -X GET "http://127.0.0.1:8000/play/narrator/<GAME_ID>" -H "Authorization: Bearer <TOKEN>"
 ```

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
 
 from ..core.database import get_db
-from ..schemas.game_schema import GameCreateIn, GameOut
+from ..schemas.game_schema import GameOut
 from ..service import game_service, oauth_service
 
 
@@ -16,8 +16,8 @@ def get_games(db: Session = Depends(get_db)):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@game_router.post("/", response_model=GameOut, status_code=status.HTTP_201_CREATED)
-def create_game(game_in: GameCreateIn, authorization: str = Header(None), db: Session = Depends(get_db)):
+@game_router.post("/", response_model=GameOut)
+def create_game(title: str, authorization: str = Header(None), db: Session = Depends(get_db)):
     if not authorization:
         raise HTTPException(status_code=401, detail="Missing Authorization header")
     try:
@@ -29,7 +29,7 @@ def create_game(game_in: GameCreateIn, authorization: str = Header(None), db: Se
     try:
         auth_info = oauth_service.authenticate(token, db)
         owner_id = auth_info.get("user_id")
-        return game_service.create_game(db, title=game_in.title, owner_id=owner_id)
+        return game_service.create_game(db, title=title, owner_id=owner_id)
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
 
