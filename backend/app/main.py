@@ -1,5 +1,6 @@
 # TODO
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from .core.database import engine, Base
 from .routes.game_routes import game_router
@@ -9,6 +10,14 @@ from .routes.user_routes import user_router
 
 
 app = FastAPI(title="Project_web3 API")
+
+app.add_middleware(
+	CORSMiddleware,
+	allow_origins=["*"],
+	allow_credentials=True,
+	allow_methods=["*"],
+	allow_headers=["*"],
+)
 
 
 @app.on_event("startup")
