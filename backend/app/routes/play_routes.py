@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Header
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from ..core.database import get_db
@@ -35,7 +36,7 @@ def player_play(message: messageIn, authorization: str = Header(None), db: Sessi
         from fastapi import HTTPException
         raise HTTPException(status_code=503, detail=str(e))
 
-@play_router.get("/narrator/{game_id}", response_model=messageOut)
+@play_router.get("/narrator/{game_id}")
 def narrator_play(game_id: str, authorization: str = Header(None), db: Session = Depends(get_db)):
     if not authorization:
         from fastapi import HTTPException
@@ -50,7 +51,8 @@ def narrator_play(game_id: str, authorization: str = Header(None), db: Session =
     try:
         auth_info = oauth_service.authenticate(token, db)
         user_id = auth_info.get("user_id")
-        return play_service.narrator_play(db, game_id=game_id, token_user_id=user_id)
+        stream_iter = play_service.narrator_play(db, game_id=game_id, token_user_id=user_id)
+        return StreamingResponse(stream_iter, media_type="text/plain; charset=utf-8")
     except ValueError as e:
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail=str(e))
@@ -59,7 +61,6 @@ def narrator_play(game_id: str, authorization: str = Header(None), db: Session =
         raise HTTPException(status_code=403, detail=str(e))
     except RuntimeError as e:
         from fastapi import HTTPException
-        # Downstream Ollama connection issues -> service unavailable
         raise HTTPException(status_code=503, detail=str(e))
 
 

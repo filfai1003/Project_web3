@@ -2,7 +2,9 @@ from typing import Dict
 from sqlalchemy.orm import Session
 
 from ..repository import game_repo, user_repo
-from ..util.ollama_utils import receive_message
+from ..util.ollama_utils import stream_receive_message
+from itertools import chain
+import json
 
 
 def player_play(db: Session, game_id: str, message: str, token_user_id: str) -> Dict:
@@ -28,6 +30,39 @@ def narrator_play(db: Session, game_id: str, token_user_id: str) -> Dict:
     for i in interactions:
         role = "assistant" if i.sender == "assistant" else "user"
         messages.append({"role": role, "content": f"{i.sender}: {i.content}"})
-    ai_text = receive_message(messages)
-    inter = game_repo.add_interaction(db, game_id=game_id, sender="assistant", content=ai_text)
-    return {"interaction_id": inter.interaction_id, "sender": inter.sender, "content": inter.content, "created_at": inter.created_at.isoformat()}
+    gen = stream_receive_message(messages)
+    try:
+        first_chunk = next(gen)
+    except StopIteration:
+        inter = game_repo.add_interaction(db, game_id=game_id, sender="assistant", content="")
+        def empty_iter():
+            if False:
+                yield ""
+        return empty_iter()
+    except RuntimeError:
+        raise
+    except Exception as e:
+        raise RuntimeError(str(e))
+    
+    def stream_and_persist():
+        collected = [first_chunk]
+        yield first_chunk
+        try:
+            for chunk in gen:
+                collected.append(chunk)
+                yield chunk
+        finally:
+            try:
+                final_text = "".join(collected)
+                inter = game_repo.add_interaction(db, game_id=game_id, sender="assistant", content=final_text)
+                interaction_obj = {
+                    "interaction_id": inter.interaction_id,
+                    "sender": inter.sender,
+                    "content": inter.content,
+                    "created_at": inter.created_at.isoformat(),
+                }
+                yield "\n__INTERACTION_JSON__\n" + json.dumps(interaction_obj)
+            except Exception:
+                pass
+
+    return stream_and_persist()

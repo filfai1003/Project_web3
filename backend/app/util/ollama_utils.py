@@ -1,17 +1,21 @@
-from ollama import chat
+import ollama
 
-from backend.app.core.config import Settings
+from ..core.config import settings
 
-def receive_message(messages: list[dict]):
-    # TODO internal prompting to tell LLM what to do and context
-    stream = chat(
-        model='llama3.2:3b',
-        messages=messages,
-        stream=True,
-    )
 
-    for chunk in stream:
-        print(chunk['message']['content'], end='', flush=True)
-        # TODO: Process each chunk as needed
-    
-    return stream.final_response
+def stream_receive_message(messages: list[dict], model: str | None = None):
+    """Stream generator that yields text chunks from the Ollama model.
+
+    Yields raw text snippets as they arrive. Raises RuntimeError on connection
+    / streaming errors so callers (routes) can map to a 503.
+    """
+    model = model or settings.DEFAULT_MODEL
+    collected = []
+    try:
+        for chunk in ollama.chat(model=model, messages=messages, stream=True):
+            if "message" in chunk and "content" in chunk["message"]:
+                content = chunk["message"]["content"]
+                yield content
+                collected.append(content)
+    except Exception as e:
+        raise RuntimeError(f"Ollama streaming error: {e}")
