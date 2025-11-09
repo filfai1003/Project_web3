@@ -14,3 +14,7 @@ class LoginIn(BaseModel):
 
 class Token(BaseModel):
     access_token: str
+    token_type: Optional[str] = Field('bearer')
+    user_id: Optional[str] = None
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None

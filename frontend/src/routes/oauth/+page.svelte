@@ -2,7 +2,7 @@
   import '../../style/oauth.css';
   import type { LoginPayload, SignUpPayload } from '../../api/oauth';
   import { login, signup } from '../../api/oauth';
-  import { loginWithToken } from '../../stores/authStore';
+  import { loginWithToken, setUserProfile } from '../../stores/authStore';
 
   let username = '';
   let email = '';
@@ -22,12 +22,14 @@
           }
           const payload: SignUpPayload = { username, email, password };
             const t = await signup(payload);
-          loginWithToken(t.access_token);
+            loginWithToken(t.access_token);
+            try { setUserProfile({ user_id: t.user_id, username: t.username, email: t.email }); } catch (e) {}
       } else {
           const id = identifier.trim();
           const payload: LoginPayload = id.includes('@') ? { email: id, password } : { username: id, password };
           const t = await login(payload);
         loginWithToken(t.access_token);
+        try { setUserProfile({ user_id: t.user_id, username: t.username, email: t.email }); } catch (e) {}
       }
       window.location.href = '/';
     } catch (e) {

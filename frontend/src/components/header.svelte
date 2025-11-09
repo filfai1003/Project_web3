@@ -1,6 +1,11 @@
 <script lang="ts">
-  import { loggedIn, logout } from '../stores/authStore';
+  import { onMount } from 'svelte';
+  import { loggedIn, logout, profile, restoreProfileFromCookie } from '../stores/authStore';
   export let title: string = 'Project Web3';
+
+  onMount(() => {
+    try { restoreProfileFromCookie(); } catch (e) {}
+  });
 </script>
 
 <header class="app-header">
@@ -9,6 +14,7 @@
     <a href="/">Home</a>
     <a href="/games">Games</a>
     {#if $loggedIn}
+      <span class="who">{ $profile?.username ?? 'User' }</span>
       <button class="logout" on:click={logout}>Logout</button>
     {:else}
       <a href="/oauth">Login</a>
