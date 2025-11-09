@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Game } from '../api/games';
 
-	// backend GameOut shape: { game_id, owner_id, title, interactions }
+	// { game_id, owner_id, title, interactions }
 	export let game: Game;
 </script>
 
