@@ -1,0 +1,59 @@
+.oauth-container {
+  max-width: 520px;
+  margin: 2.25rem auto;
+  padding: 1rem;
+}
+
+.oauth-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03));
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(3,7,20,0.6);
+}
+
+.oauth-card h1 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.4rem;
+}
+
+.oauth-card p { margin: 0 0 1rem 0; color: var(--muted); }
+
+.oauth-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.field label { display: block; font-size: 0.95rem; color: var(--muted); }
+.field input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.01);
+  color: inherit;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.field input::placeholder { color: rgba(230,238,248,0.45); }
+.field input:focus { border-color: var(--accent); box-shadow: 0 0 0 6px rgba(124,58,237,0.06); }
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.btn { flex: 1; padding: 0.65rem 0.9rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; }
+.btn.primary { background: linear-gradient(180deg, var(--accent), #5b21b6); color: #fff; }
+.btn.ghost { background: transparent; color: var(--muted); border: 1px solid rgba(255,255,255,0.04); }
+.btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+
+.error { color: #ff8b8b; margin-top: 0.5rem; }
+
+@media (max-width: 520px) {
+  .oauth-container { margin: 1rem; padding: 0; }
+  .oauth-card { padding: 0.9rem; }
+  .actions { flex-direction: column; }
+}
