@@ -11,6 +11,9 @@ from .. util.auth_utils import (
 )
 
 def signup(db: Session, user_in: SignUpIn) -> Dict:
+	if '@' in user_in.username:
+		raise ValueError("Username must not contain '@'")
+
 	if user_repo.get_user_by_username(db, user_in.username):
 		raise ValueError("Username already registered")
 	if user_in.email and user_repo.get_user_by_email(db, user_in.email):

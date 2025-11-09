@@ -1,10 +1,12 @@
 <script lang="ts">
   import '../../style/oauth.css';
   import type { LoginPayload, SignUpPayload } from '../../api/oauth';
-  import { login, signup, saveToken } from '../../api/oauth';
+  import { login, signup } from '../../api/oauth';
+  import { loginWithToken } from '../../stores/authStore';
 
   let username = '';
   let email = '';
+  let identifier = '';
   let password = '';
   let error: string | null = null;
   let loading = false;
@@ -15,13 +17,17 @@
     loading = true;
     try {
       if (isSignup) {
-        const payload: SignUpPayload = { username, email, password };
-        const t = await signup(payload);
-        saveToken(t);
+          if (username.includes('@')) {
+            throw new Error("Username must not contain '@'");
+          }
+          const payload: SignUpPayload = { username, email, password };
+            const t = await signup(payload);
+          loginWithToken(t.access_token);
       } else {
-        const payload: LoginPayload = { username: username || undefined, email: email || undefined, password };
-        const t = await login(payload);
-        saveToken(t);
+          const id = identifier.trim();
+          const payload: LoginPayload = id.includes('@') ? { email: id, password } : { username: id, password };
+          const t = await login(payload);
+        loginWithToken(t.access_token);
       }
       window.location.href = '/';
     } catch (e) {
@@ -33,6 +39,9 @@
     isSignup = !isSignup;
     error = null;
     password = '';
+    identifier = '';
+    username = '';
+    email = '';
   }
 </script>
 
@@ -45,7 +54,7 @@
       {#if isSignup}
         <div class="field">
           <label>Username
-            <input type="text" bind:value={username} placeholder="choose a username" required />
+            <input type="text" bind:value={username} placeholder="choose a username" required pattern="^[^@]+$" title="Username must not contain '@'" />
           </label>
         </div>
         <div class="field">
@@ -55,13 +64,8 @@
         </div>
       {:else}
         <div class="field">
-          <label>Username
-            <input type="text" bind:value={username} placeholder="username" />
-          </label>
-        </div>
-        <div class="field">
-          <label>Email
-            <input type="email" bind:value={email} placeholder="email" />
+          <label>Username or email
+            <input type="text" bind:value={identifier} placeholder="username or email" required />
           </label>
         </div>
       {/if}

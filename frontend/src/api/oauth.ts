@@ -50,6 +50,3 @@ export async function authenticate(accessToken: string): Promise<Token> {
   });
   return (await handleResponse(res)) as Token;
 }
-
-export function saveToken(t: Token) { try { localStorage.setItem('access_token', t.access_token); } catch {} }
-export function loadToken(): string | null { try { return localStorage.getItem('access_token'); } catch { return null } }

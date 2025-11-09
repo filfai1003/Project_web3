@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { loggedIn, logout } from '../stores/authStore';
   export let title: string = 'Project Web3';
 </script>
 
@@ -7,7 +8,11 @@
   <nav class="nav">
     <a href="/">Home</a>
     <a href="/games">Games</a>
-    <a href="/oauth">Login</a>
+    {#if $loggedIn}
+      <button class="logout" on:click={logout}>Logout</button>
+    {:else}
+      <a href="/oauth">Login</a>
+    {/if}
   </nav>
 </header>
 
@@ -27,4 +32,6 @@
   .nav { display: flex; gap: 1rem; align-items: center; }
   .nav a { color: var(--muted); text-decoration: none; padding: 0.25rem 0.4rem; border-radius: 6px; }
   .nav a:hover { color: var(--accent); background: rgba(124,58,237,0.04); }
+  .logout { background: transparent; border: 1px solid rgba(255,255,255,0.04); color: var(--muted); padding: 0.25rem 0.6rem; border-radius:6px; cursor: pointer; }
+  .logout:hover { color: var(--accent); background: rgba(124,58,237,0.04); }
 </style>
