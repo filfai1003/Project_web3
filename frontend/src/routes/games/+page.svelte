@@ -4,10 +4,20 @@
 	import GameCard from '../../components/game_card.svelte';
 	import type { Game } from '../../api/games';
 	import { fetchGames } from '../../api/games';
+	import { getCookie } from '../../utils/cookies';
 
 	let games: Game[] = [];
 	let loading = true;
 	let error: string | null = null;
+
+	function createNew() {
+		const token = getCookie('token');
+		if (!token) {
+			window.location.href = '/oauth';
+			return;
+		}
+		window.location.href = '/games/new';
+	}
 
 	onMount(async () => {
 		try {
@@ -24,6 +34,7 @@
 	<div class="grid-header">
 		<h1>Games</h1>
 		<div class="muted">{games.length} games</div>
+		<button class="create-btn" on:click={createNew}>Create new</button>
 	</div>
 
 	{#if loading}

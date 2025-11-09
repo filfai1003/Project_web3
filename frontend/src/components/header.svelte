@@ -15,6 +15,7 @@
     <a href="/">Home</a>
     <a href="/games">Games</a>
     {#if $loggedIn}
+      <a href="/games/mine">My Games</a>
       <span class="who">{ $profile?.username ?? 'User' }</span>
       <button class="logout" on:click={logout}>Logout</button>
     {:else}
