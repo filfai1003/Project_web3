@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import '../style/header.css';
   import { loggedIn, logout, profile, restoreProfileFromCookie } from '../stores/authStore';
   export let title: string = 'Project Web3';
 
@@ -22,22 +23,3 @@
   </nav>
 </header>
 
-<style>
-  .app-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
-    background: transparent;
-    position: sticky;
-    top: 0;
-    z-index: 50;
-  }
-  .brand a { font-weight: 600; color: inherit; text-decoration: none; }
-  .nav { display: flex; gap: 1rem; align-items: center; }
-  .nav a { color: var(--muted); text-decoration: none; padding: 0.25rem 0.4rem; border-radius: 6px; }
-  .nav a:hover { color: var(--accent); background: rgba(124,58,237,0.04); }
-  .logout { background: transparent; border: 1px solid rgba(255,255,255,0.04); color: var(--muted); padding: 0.25rem 0.6rem; border-radius:6px; cursor: pointer; }
-  .logout:hover { color: var(--accent); background: rgba(124,58,237,0.04); }
-</style>
