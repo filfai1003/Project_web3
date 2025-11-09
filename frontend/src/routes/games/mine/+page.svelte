@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import '../../../style/mygames.css';
+  import '../../../style/games.css';
   import GameCard from '../../../components/game_card.svelte';
   import type { Game } from '../../../api/games';
   import { fetchGamesByOwner } from '../../../api/games';
