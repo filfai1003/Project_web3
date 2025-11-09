@@ -21,7 +21,7 @@ def signup(db: Session, user_in: SignUpIn) -> Dict:
 	hashed = get_password_hash(user_in.password)
 	user = user_repo.create_user(db, username=user_in.username, email=user_in.email, password_hash=hashed)
 	token = create_access_token({"sub": user.user_id})
-	return {"access_token": token, "token_type": "bearer", "user_id": user.user_id}
+	return {"access_token": token, "token_type": "bearer", "user_id": user.user_id, "username": user.username, "email": user.email}
 
 
 def login(db: Session, payload: LoginIn) -> Dict:
@@ -35,7 +35,7 @@ def login(db: Session, payload: LoginIn) -> Dict:
 	if not user or not verify_password(payload.password, user.password_hash):
 		raise ValueError("Invalid credentials")
 	token = create_access_token({"sub": user.user_id})
-	return {"access_token": token, "token_type": "bearer", "user_id": user.user_id}
+	return {"access_token": token, "token_type": "bearer", "user_id": user.user_id, "username": user.username, "email": user.email}
 
 
 def authenticate(token: str, db: Session) -> Dict:
@@ -46,4 +46,4 @@ def authenticate(token: str, db: Session) -> Dict:
 	if not user:
 		raise ValueError("User not found")
 	new_token = create_access_token({"sub": user.user_id})
-	return {"access_token": new_token, "token_type": "bearer", "user_id": user.user_id}
+	return {"access_token": new_token, "token_type": "bearer", "user_id": user.user_id, "username": user.username, "email": user.email}

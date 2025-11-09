@@ -12,6 +12,9 @@ export type LoginPayload = {
 
 export type Token = {
   access_token: string;
+  user_id: string;
+  username: string;
+  email?: string;
 };
 
 const BASE = 'http://127.0.0.1:8000';

@@ -22,3 +22,43 @@ export async function fetchGames(): Promise<Game[]> {
 	const data = await res.json();
 	return data as Game[];
 }
+
+export async function fetchGamesByOwner(ownerId: string, accessToken?: string): Promise<Game[]> {
+	const headers: Record<string, string> = {};
+	if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+
+	const res = await fetch(`${BASE}/game/owner/${ownerId}`, { method: 'GET', headers });
+	if (!res.ok) {
+		const text = await res.text().catch(() => '');
+		throw new Error(`Failed to fetch owner games: ${res.status} ${res.statusText} ${text}`);
+	}
+	const data = await res.json().catch(() => []);
+	return data as Game[];
+}
+
+export async function createGame(title: string, accessToken?: string): Promise<Game> {
+	const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+	if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+
+	const url = `${BASE}/game/?title=${encodeURIComponent(title)}`;
+	const res = await fetch(url, { method: 'POST', headers });
+	if (!res.ok) {
+		const text = await res.text().catch(() => '');
+		throw new Error(`Failed to create game: ${res.status} ${res.statusText} ${text}`);
+	}
+	const data = await res.json();
+	return data as Game;
+}
+
+export async function fetchGameById(gameId: string, accessToken?: string): Promise<Game> {
+	const headers: Record<string, string> = {};
+	if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+
+	const res = await fetch(`${BASE}/game/${encodeURIComponent(gameId)}`, { method: 'GET', headers });
+	if (!res.ok) {
+		const text = await res.text().catch(() => '');
+		throw new Error(`Failed to fetch game: ${res.status} ${res.statusText} ${text}`);
+	}
+	const data = await res.json();
+	return data as Game;
+}
