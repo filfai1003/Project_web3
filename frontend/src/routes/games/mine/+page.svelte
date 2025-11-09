@@ -56,7 +56,7 @@
   {:else}
     <div class="game-list">
       {#each games as g}
-        <GameCard {g} game={g} />
+        <GameCard game={g} />
       {/each}
     </div>
   {/if}
