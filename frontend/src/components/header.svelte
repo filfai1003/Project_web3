@@ -10,18 +10,18 @@
   let menuOpen = false;
   let displayLoggedIn: boolean | undefined = initialAuth?.loggedIn;
   let displayProfile: UserProfile | null | undefined = initialAuth?.profile;
+  let usingInitial = true;
 
   const links = [
     { href: '/', label: 'Home', auth: false },
     { href: '/games', label: 'Games', auth: false },
-    { href: '/games/new', label: 'Create', auth: true },
-    { href: '/games/my', label: 'My Games', auth: true }
   ];
 
-  $: displayLoggedIn = initialAuth?.loggedIn ?? $loggedIn;
-  $: displayProfile = initialAuth?.profile ?? $profile;
+  $: displayLoggedIn = usingInitial && initialAuth?.loggedIn !== undefined ? initialAuth.loggedIn : $loggedIn;
+  $: displayProfile = usingInitial && initialAuth?.profile !== undefined ? initialAuth.profile : $profile;
 
   onMount(() => {
+    usingInitial = false;
     try { restoreProfileFromCookie(); } catch (e) {}
   });
 
@@ -59,7 +59,7 @@
         {/if}
       {/each}
       {#if displayLoggedIn}
-        <div class="profile" on:click={closeMenu}>
+  <div class="profile">
           <span class="avatar">{initials()}</span>
           <div class="details">
             <strong>{displayProfile?.username ?? 'Player'}</strong>

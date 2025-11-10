@@ -26,8 +26,8 @@
 
 	onMount(() => {
 		try {
-			if (getCookie('token')) {
-					void goto('/games/my');
+					if (getCookie('token')) {
+						void goto('/games?view=mine');
 			}
 		} catch (e) {}
 	});
@@ -67,7 +67,7 @@
 
 			loginWithToken(token.access_token);
 			setUserProfile({ user_id: token.user_id, username: token.username, email: token.email });
-			await goto('/games/my');
+			await goto('/games?view=mine');
 		} catch (err) {
 			const message = err instanceof Error ? err.message : String(err);
 			error = message || 'Unable to authenticate. Please try again.';
