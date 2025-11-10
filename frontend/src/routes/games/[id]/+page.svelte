@@ -35,9 +35,7 @@
       if (!token) { window.location.href = '/oauth'; return; }
 
       if (!inputText || inputText.trim() === '') {
-        // request narrator
         const text = await narratorPlay(String(gameId), token);
-        // backend streaming response may include appended JSON; try to split
         let content = text;
         const marker = '\n__INTERACTION_JSON__\n';
         if (content.includes(marker)) {
@@ -45,7 +43,7 @@
         }
         const interaction = {
           interaction_id: 'local-' + Date.now(),
-          sender: 'assistant',
+          sender: 'narrator',
           content: String(content).trim(),
           created_at: new Date().toISOString()
         };

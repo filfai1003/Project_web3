@@ -28,13 +28,13 @@ def narrator_play(db: Session, game_id: str, token_user_id: str) -> Dict:
     interactions = game_repo.get_interactions_for_game(db, game_id)
     messages = []
     for i in interactions:
-        role = "assistant" if i.sender == "assistant" else "user"
-        messages.append({"role": role, "content": f"{i.sender}: {i.content}"})
+        role = "narrator" if i.sender == "narrator" else "user"
+        messages.append({"role": role, "content": f"{i.content}"})
     gen = stream_receive_message(messages)
     try:
         first_chunk = next(gen)
     except StopIteration:
-        inter = game_repo.add_interaction(db, game_id=game_id, sender="assistant", content="")
+        inter = game_repo.add_interaction(db, game_id=game_id, sender="narrator", content="")
         def empty_iter():
             if False:
                 yield ""
@@ -54,7 +54,7 @@ def narrator_play(db: Session, game_id: str, token_user_id: str) -> Dict:
         finally:
             try:
                 final_text = "".join(collected)
-                inter = game_repo.add_interaction(db, game_id=game_id, sender="assistant", content=final_text)
+                inter = game_repo.add_interaction(db, game_id=game_id, sender="narrator", content=final_text)
                 interaction_obj = {
                     "interaction_id": inter.interaction_id,
                     "sender": inter.sender,
