@@ -1,102 +1,212 @@
 <script lang="ts">
-  import '../../../style/games.css';
-  import GameCard from '../../../components/game_card.svelte';
-  import { fetchGameById } from '../../../api/games';
-  import { onMount } from 'svelte';
-  import { page } from '$app/stores';
-  import { playerPlay, narratorPlay } from '../../../api/play';
-  import { getCookie } from '../../../utils/cookies';
+	import '../../../style/game.css';
+	import type { Game, Interaction } from '../../../api/games';
+	import { fetchGameById } from '../../../api/games';
+	import { narratorPlayStream, playerPlay } from '../../../api/play';
+	import { getCookie } from '../../../utils/cookies';
+	import { goto } from '$app/navigation';
+	import { afterUpdate, onMount } from 'svelte';
 
-  let game: any = null;
-  let loading = true;
-  let error: string | null = null;
-  let inputText: string = '';
-  let submitting: boolean = false;
+	export let params: { id: string };
 
-  $: gameId = $page.params.id;
+	let game: Game | null = null;
+	let conversation: Interaction[] = [];
+	let loading = true;
+	let error: string | null = null;
+	let actionError: string | null = null;
+	let message = '';
+	let sending = false;
+	let streaming = false;
+	let messagesEl: HTMLDivElement | null = null;
 
-  onMount(async () => {
-    loading = true;
-    error = null;
-    try {
-      game = await fetchGameById(String(gameId));
-    } catch (e) {
-      error = (e as Error)?.message ?? String(e);
-    } finally {
-      loading = false;
-    }
-  });
+	afterUpdate(() => {
+		if (messagesEl) {
+			messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
+		}
+	});
 
-  async function submitInteraction() {
-    submitting = true;
-    error = null;
-    try {
-      const token = getCookie('token');
-      if (!token) { window.location.href = '/oauth'; return; }
+	onMount(() => {
+		void loadGame();
+	});
 
-      if (!inputText || inputText.trim() === '') {
-        const text = await narratorPlay(String(gameId), token);
-        let content = text;
-        const marker = '\n__INTERACTION_JSON__\n';
-        if (content.includes(marker)) {
-          content = content.split(marker)[0];
-        }
-        const interaction = {
-          interaction_id: 'local-' + Date.now(),
-          sender: 'narrator',
-          content: String(content).trim(),
-          created_at: new Date().toISOString()
-        };
-        game.interactions = game.interactions || [];
-        game.interactions.push(interaction);
-      } else {
-        // send player message
-        const out = await playerPlay(String(gameId), inputText, token);
-        game.interactions = game.interactions || [];
-        game.interactions.push(out);
-        inputText = '';
-      }
-    } catch (e) {
-      error = (e as Error)?.message ?? String(e);
-    } finally {
-      submitting = false;
-    }
-  }
+	async function loadGame() {
+		try {
+			loading = true;
+			error = null;
+			const token = getCookie('token');
+			if (!token) {
+				await goto('/oauth');
+				return;
+			}
+			await refreshConversation(token, true);
+		} catch (err) {
+			const messageText = err instanceof Error ? err.message : String(err);
+			error = messageText || 'Unable to open this game.';
+		} finally {
+			loading = false;
+		}
+	}
+
+	async function refreshConversation(token: string, replaceGame = false) {
+		const latest = await fetchGameById(params.id, token);
+		if (replaceGame || !game) {
+			game = latest;
+		} else {
+			game = { ...game, ...latest };
+		}
+		conversation = latest.interactions ?? [];
+	}
+
+	function senderLabel(sender: string) {
+		if (!sender) return 'Narrator';
+		const lower = sender.toLowerCase();
+		if (lower.includes('player')) return 'You';
+		if (lower.includes('narrator')) return 'Narrator';
+		return sender;
+	}
+
+	function senderClass(sender: string) {
+		return sender && sender.toLowerCase().includes('player') ? 'player' : 'narrator';
+	}
+
+	function formatTime(value: string) {
+		try {
+			const date = new Date(value);
+			return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+		} catch (e) {
+			return '';
+		}
+	}
+
+	async function sendMessage() {
+		if (!game || sending) return;
+		const trimmed = message.trim();
+		if (!trimmed) return;
+		actionError = null;
+		const token = getCookie('token');
+		if (!token) {
+			await goto('/oauth');
+			return;
+		}
+		sending = true;
+		try {
+			const reply = await playerPlay(game.game_id, trimmed, token);
+			conversation = [...conversation, { sender: reply.sender, content: reply.content, created_at: reply.created_at }];
+			message = '';
+			await refreshConversation(token);
+		} catch (err) {
+			const messageText = err instanceof Error ? err.message : String(err);
+			actionError = messageText || 'Unable to send your message.';
+		} finally {
+			sending = false;
+		}
+	}
+
+	async function startNarrator() {
+		if (!game || streaming) return;
+		actionError = null;
+		const token = getCookie('token');
+		if (!token) {
+			await goto('/oauth');
+			return;
+		}
+		streaming = true;
+		const streamIndex = conversation.length;
+		const startEntry: Interaction = {
+			sender: 'Narrator',
+			content: '',
+			created_at: new Date().toISOString()
+		};
+		conversation = [...conversation, startEntry];
+		try {
+			await narratorPlayStream(game.game_id, (chunk) => {
+				conversation = conversation.map((entry, index) =>
+					index === streamIndex ? { ...entry, content: entry.content + chunk } : entry
+				);
+			}, token);
+			await refreshConversation(token);
+		} catch (err) {
+			const messageText = err instanceof Error ? err.message : String(err);
+			actionError = messageText || 'Narrator could not complete the response.';
+		} finally {
+			streaming = false;
+		}
+	}
 </script>
 
-<div class="games-container">
-  {#if loading}
-    <p class="loader">Loading game...</p>
-  {:else if error}
-    <p class="muted">Error: {error}</p>
-  {:else if !game}
-    <p class="muted">Game not found.</p>
-  {:else}
-    <div class="center">
-      <h1>{game.title}</h1>
-      <GameCard {game} />
-      <section>
-        <h2>Interactions</h2>
-        <div style="margin:0.75rem 0">
-          <textarea placeholder="Type an action, or leave empty to call the narrator" bind:value={inputText} rows="3" style="width:100%; padding:0.5rem; border-radius:6px; background:var(--surface); color:inherit; border:1px solid rgba(255,255,255,0.03);"></textarea>
-          <div style="display:flex; gap:0.5rem; margin-top:0.5rem; align-items:center;">
-            <button class="create-btn" on:click={submitInteraction} disabled={submitting}>{submitting ? 'Sending...' : 'Send'}</button>
-            <div class="muted">Leave empty to request narrator turn</div>
-          </div>
-          {#if error}
-            <p class="muted">Error: {error}</p>
-          {/if}
-        </div>
-        {#if game.interactions?.length}
-          <ul>
-            {#each game.interactions as it}
-              <li class="muted">{it.sender}: {it.content}</li>
-            {/each}
-          </ul>
-        {:else}
-          <p class="muted">No interactions yet.</p>
-        {/if}
-      </section>
-    </div>
-  {/if}
-</div>
+{#if loading}
+	<div class="game-state">Loading game...</div>
+{:else if error}
+	<div class="game-state error">{error}</div>
+{:else if !game}
+	<div class="game-state error">Game not found.</div>
+{:else}
+	<section class="game-shell">
+		<header class="game-header">
+			<div>
+				<h1>{game.title}</h1>
+				<p>Interact with the narrator to keep the story alive.</p>
+			</div>
+			<div class="game-actions">
+				<button type="button" class="narrator" on:click={startNarrator} disabled={streaming}>
+					{#if streaming}
+						Narrator streaming...
+					{:else}
+						Ask narrator
+					{/if}
+				</button>
+			</div>
+		</header>
+
+		{#if actionError}
+			<p class="game-alert">{actionError}</p>
+		{/if}
+
+		<div class="game-grid">
+					<div class="conversation" bind:this={messagesEl}>
+						{#each conversation as entry, index (index)}
+					<div class={`bubble ${senderClass(entry.sender)}`}>
+						<div class="bubble-meta">
+							<span>{senderLabel(entry.sender)}</span>
+							{#if entry.created_at}
+								<time>{formatTime(entry.created_at)}</time>
+							{/if}
+						</div>
+						<p>{entry.content}</p>
+					</div>
+				{/each}
+				{#if conversation.length === 0}
+					<div class="conversation-empty">No messages yet. Say hi to begin the story.</div>
+				{/if}
+			</div>
+
+			<form class="composer" on:submit|preventDefault={sendMessage}>
+				<label>
+					<span>Your move</span>
+					<textarea
+						rows="4"
+						placeholder="Describe your next action..."
+						bind:value={message}
+						required
+					></textarea>
+				</label>
+				<div class="composer-actions">
+					<button type="submit" class="send" disabled={sending}>
+						{#if sending}
+							Sending...
+						{:else}
+							Send message
+						{/if}
+					</button>
+					<button type="button" class="narrator" on:click={startNarrator} disabled={streaming}>
+						{#if streaming}
+							Narrator streaming...
+						{:else}
+							Ask narrator
+						{/if}
+					</button>
+				</div>
+			</form>
+		</div>
+	</section>
+{/if}

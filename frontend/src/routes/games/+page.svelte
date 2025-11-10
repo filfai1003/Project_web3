@@ -1,54 +1,53 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import '../../style/games.css';
-	import GameCard from '../../components/game_card.svelte';
-	import type { Game } from '../../api/games';
-	import { fetchGames } from '../../api/games';
-	import { getCookie } from '../../utils/cookies';
+  import '../../style/games.css';
+  import type { Game } from '../../api/games';
+  import { fetchGames } from '../../api/games';
+  import { onMount } from 'svelte';
 
-	let games: Game[] = [];
-	let loading = true;
-	let error: string | null = null;
+  let loading = true;
+  let error: string | null = null;
+  let games: Game[] = [];
 
-	function createNew() {
-		const token = getCookie('token');
-		if (!token) {
-			window.location.href = '/oauth';
-			return;
-		}
-		window.location.href = '/games/new';
-	}
-
-	onMount(async () => {
-		try {
-			games = await fetchGames();
-		} catch (e) {
-			error = (e as Error)?.message ?? String(e);
-		} finally {
-			loading = false;
-		}
-	});
+  onMount(() => {
+    (async () => {
+      try {
+        games = await fetchGames();
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        error = message || 'Unable to load games right now.';
+      } finally {
+        loading = false;
+      }
+    })();
+  });
 </script>
 
-<div class="games-container">
-	<div class="grid-header">
-		<h1>Games</h1>
-		<div class="muted">{games.length} games</div>
-		<button class="create-btn" on:click={createNew}>Create new</button>
-	</div>
+<section class="games-shell">
+  <header class="games-header">
+    <div>
+      <h1>Discover games</h1>
+      <p>Breeze through the latest adventures created by the community.</p>
+    </div>
+    <a class="create" href="/games/new">Create a game</a>
+  </header>
 
-	{#if loading}
-		<p class="loader">Loading games...</p>
-	{:else if error}
-		<p class="muted">Error: {error}</p>
-	{:else if games.length === 0}
-		<p class="muted">No games found.</p>
-	{:else}
-			<div class="game-list">
-				{#each games as g}
-					<GameCard game={g} />
-				{/each}
-			</div>
-	{/if}
-</div>
-
+  {#if loading}
+    <div class="state">Loading games...</div>
+  {:else if error}
+    <div class="state error">{error}</div>
+  {:else if games.length === 0}
+    <div class="state">No games available yet. Be the first to create one!</div>
+  {:else}
+    <div class="games-grid">
+      {#each games as game (game.game_id)}
+        <a class="game-card" href={`/games/${game.game_id}`}>
+          <div class="card-title">{game.title}</div>
+          <div class="card-meta">
+            <span>{game.interactions.length} interactions</span>
+            <span>Owner #{game.owner_id.slice(0, 6)}</span>
+          </div>
+        </a>
+      {/each}
+    </div>
+  {/if}
+</section>
