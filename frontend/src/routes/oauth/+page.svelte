@@ -1,95 +1,167 @@
 <script lang="ts">
-  import '../../style/oauth.css';
-  import type { LoginPayload, SignUpPayload } from '../../api/oauth';
-  import { login, signup } from '../../api/oauth';
-  import { loginWithToken, setUserProfile } from '../../stores/authStore';
+	import '../../style/oauth.css';
+	import type { LoginPayload, SignUpPayload, Token } from '../../api/oauth';
+	import { login, signup } from '../../api/oauth';
+	import { loginWithToken, setUserProfile } from '../../stores/authStore';
+	import { getCookie } from '../../utils/cookies';
+	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
-  let username = '';
-  let email = '';
-  let identifier = '';
-  let password = '';
-  let error: string | null = null;
-  let loading = false;
-  let isSignup = false;
+	type Mode = 'login' | 'signup';
 
-  async function submit() {
-    error = null;
-    loading = true;
-    try {
-      if (isSignup) {
-          if (username.includes('@')) {
-            throw new Error("Username must not contain '@'");
-          }
-          const payload: SignUpPayload = { username, email, password };
-            const t = await signup(payload);
-            loginWithToken(t.access_token);
-            try { setUserProfile({ user_id: t.user_id, username: t.username, email: t.email }); } catch (e) {}
-      } else {
-          const id = identifier.trim();
-          const payload: LoginPayload = id.includes('@') ? { email: id, password } : { username: id, password };
-          const t = await login(payload);
-        loginWithToken(t.access_token);
-        try { setUserProfile({ user_id: t.user_id, username: t.username, email: t.email }); } catch (e) {}
-      }
-      window.location.href = '/';
-    } catch (e) {
-      error = (e as Error)?.message ?? String(e);
-    } finally { loading = false; }
-  }
+	let mode: Mode = 'login';
+	let loading = false;
+	let error: string | null = null;
 
-  function toggleMode() {
-    isSignup = !isSignup;
-    error = null;
-    password = '';
-    identifier = '';
-    username = '';
-    email = '';
-  }
+	let loginForm = {
+		identifier: '',
+		password: ''
+	};
+
+	let signupForm: SignUpPayload = {
+		username: '',
+		email: '',
+		password: ''
+	};
+
+	onMount(() => {
+		try {
+					if (getCookie('token')) {
+						void goto('/games?view=mine');
+			}
+		} catch (e) {}
+	});
+
+	function switchMode(next: Mode) {
+		if (mode === next) return;
+		mode = next;
+		error = null;
+	}
+
+	async function submit() {
+		if (loading) return;
+		error = null;
+		loading = true;
+
+		try {
+			let token: Token;
+
+			if (mode === 'login') {
+				const identifier = loginForm.identifier.trim();
+				if (!identifier) throw new Error('Enter your username or email.');
+				const payload: LoginPayload = { password: loginForm.password };
+				if (identifier.includes('@')) payload.email = identifier;
+				else payload.username = identifier;
+				token = await login(payload);
+			} else {
+				const payload: SignUpPayload = {
+					username: signupForm.username.trim(),
+					email: signupForm.email.trim(),
+					password: signupForm.password
+				};
+				if (!payload.username || !payload.email) {
+					throw new Error('Fill in all the fields to create an account.');
+				}
+				token = await signup(payload);
+			}
+
+			loginWithToken(token.access_token);
+			setUserProfile({ user_id: token.user_id, username: token.username, email: token.email });
+			await goto('/games?view=mine');
+		} catch (err) {
+			const message = err instanceof Error ? err.message : String(err);
+			error = message || 'Unable to authenticate. Please try again.';
+		} finally {
+			loading = false;
+		}
+	}
 </script>
 
-<div class="oauth-container">
-  <div class="oauth-card">
-    <h1>{isSignup ? 'Create an account' : 'Welcome back'}</h1>
-    <p class="muted">{isSignup ? 'Sign up to start a new adventure.' : 'Sign in to continue.'}</p>
+<section class="auth-shell">
+	<div class="auth-card">
+		<header class="auth-header">
+			<h1>Welcome back</h1>
+			<p>Access collaborative adventures or create a new account in minutes.</p>
+		</header>
 
-    <form class="oauth-form" on:submit|preventDefault={submit}>
-      {#if isSignup}
-        <div class="field">
-          <label>Username
-            <input type="text" bind:value={username} placeholder="choose a username" required pattern="^[^@]+$" title="Username must not contain '@'" />
-          </label>
-        </div>
-        <div class="field">
-          <label>Email
-            <input type="email" bind:value={email} placeholder="you@example.com" required />
-          </label>
-        </div>
-      {:else}
-        <div class="field">
-          <label>Username or email
-            <input type="text" bind:value={identifier} placeholder="username or email" required />
-          </label>
-        </div>
-      {/if}
+		<div class="auth-tabs" role="tablist">
+			<button type="button" class:active={mode === 'login'} on:click={() => switchMode('login')}>
+				Login
+			</button>
+			<button type="button" class:active={mode === 'signup'} on:click={() => switchMode('signup')}>
+				Sign up
+			</button>
+		</div>
 
-      <div class="field">
-        <label>Password
-          <input type="password" bind:value={password} placeholder="password" required />
-        </label>
-      </div>
+		<form class="auth-form" on:submit|preventDefault={submit}>
+			{#if mode === 'login'}
+				<label>
+					<span>Username or email</span>
+					<input
+						type="text"
+						autocomplete="username"
+						placeholder="player or player@email.com"
+						bind:value={loginForm.identifier}
+						required
+					/>
+				</label>
+				<label>
+					<span>Password</span>
+					<input
+						type="password"
+						autocomplete="current-password"
+						placeholder="••••••••"
+						bind:value={loginForm.password}
+						required
+					/>
+				</label>
+			{:else}
+				<label>
+					<span>Username</span>
+					<input
+						type="text"
+						autocomplete="username"
+						placeholder="Choose a handle"
+						bind:value={signupForm.username}
+						required
+					/>
+				</label>
+				<label>
+					<span>Email</span>
+					<input
+						type="email"
+						autocomplete="email"
+						placeholder="name@email.com"
+						bind:value={signupForm.email}
+						required
+					/>
+				</label>
+				<label>
+					<span>Password</span>
+					<input
+						type="password"
+						autocomplete="new-password"
+						placeholder="Create a secure password"
+						bind:value={signupForm.password}
+						minlength="8"
+						required
+					/>
+				</label>
+			{/if}
 
-      <div class="actions">
-        <button class="btn primary" disabled={loading}>
-          {#if loading}{isSignup ? 'Creating...' : 'Signing in...'}{:else}{isSignup ? 'Sign up' : 'Login'}{/if}
-        </button>
-        <button type="button" class="btn ghost" on:click={toggleMode} disabled={loading}>
-          {isSignup ? 'Back to login' : 'Create account'}
-        </button>
-      </div>
+			{#if error}
+				<p class="auth-error">{error}</p>
+			{/if}
 
-      {#if error}
-        <p class="error">{error}</p>
-      {/if}
-    </form>
-  </div>
-</div>
+			<button type="submit" class="auth-submit" disabled={loading}>
+				{#if loading}
+					Processing...
+				{:else if mode === 'login'}
+					Log in
+				{:else}
+					Create account
+				{/if}
+			</button>
+		</form>
+	</div>
+</section>

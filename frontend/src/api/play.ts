@@ -33,3 +33,31 @@ export async function narratorPlay(gameId: string, accessToken?: string): Promis
   const data = await res.text();
   return data;
 }
+
+export async function narratorPlayStream(gameId: string, onMessage: (message: string) => void, accessToken?: string): Promise<void> {
+  const headers: Record<string, string> = {};
+  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+
+  const res = await fetch(`${BASE}/play/narrator/${encodeURIComponent(gameId)}`, { method: 'GET', headers });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Failed to request narrator: ${res.status} ${res.statusText} ${text}`);
+  }
+
+  const reader = res.body?.getReader();
+  if (!reader) {
+    throw new Error('Failed to get reader from response body');
+  }
+
+  const decoder = new TextDecoder('utf-8');
+  let done = false;
+
+  while (!done) {
+    const { value, done: readerDone } = await reader.read();
+    done = readerDone;
+    if (value) {
+      const chunk = decoder.decode(value, { stream: true });
+      onMessage(chunk);
+    }
+  }
+}

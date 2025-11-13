@@ -1,4 +1,5 @@
 export type Interaction = {
+	interaction_id?: string;
 	sender: string;
 	content: string;
 	created_at: string;

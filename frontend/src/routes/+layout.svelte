@@ -1,12 +1,13 @@
 <script lang="ts">
-  import '../style/default.css';
   import Header from '../components/header.svelte';
+  import '../style/default.css';
 
-  export let data: any;
+  export let data: unknown;
+  const initialAuth = (data as { initialAuth?: unknown })?.initialAuth ?? null;
 </script>
 
-<Header initialAuth={data?.initialAuth} />
+<Header initialAuth={initialAuth} />
 
-<main>
+<main class="page-shell">
   <slot />
 </main>

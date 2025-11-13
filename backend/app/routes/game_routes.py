@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import OperationalError
 
 from ..core.database import get_db
 from ..schemas.game_schema import GameOut
@@ -32,6 +33,8 @@ def create_game(title: str, authorization: str = Header(None), db: Session = Dep
         return game_service.create_game(db, title=title, owner_id=owner_id)
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
+    except OperationalError as e:
+        raise HTTPException(status_code=503, detail="Database busy, riprova tra pochi istanti.")
 
 @game_router.get("/{game_id}", response_model=GameOut)
 def get_game(game_id: str, db: Session = Depends(get_db)):

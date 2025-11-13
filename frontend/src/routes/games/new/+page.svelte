@@ -25,24 +25,28 @@
   }
 </script>
 
-<div class="games-container">
-  <div class="grid-header">
-    <h1>Create game</h1>
-  </div>
+<div class="games-new-shell">
+  <header class="games-new-header">
+    <h1>Create a new game</h1>
+    <p>Give your quest a memorable title to keep it easy to find later.</p>
+  </header>
 
-  <form on:submit|preventDefault={submit}>
-    <div class="field">
-      <label>Title
-        <input type="text" bind:value={title} placeholder="My new adventure" required />
-      </label>
-    </div>
-
-    <div style="margin-top:0.75rem;">
-      <button class="create-btn" disabled={loading}>{loading ? 'Creating...' : 'Create game'}</button>
-    </div>
+  <form class="games-new-form" on:submit|preventDefault={submit}>
+    <label class="field">
+      <span>Title</span>
+      <input type="text" bind:value={title} placeholder="My new adventure" required />
+    </label>
 
     {#if error}
-      <p class="muted" style="margin-top:0.5rem;color:#ff8b8b;">{error}</p>
+      <p class="form-error">{error}</p>
     {/if}
+
+    <button class="create-btn" type="submit" disabled={loading}>
+      {#if loading}
+        Creating...
+      {:else}
+        Create game
+      {/if}
+    </button>
   </form>
 </div>
