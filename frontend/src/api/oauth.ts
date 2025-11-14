@@ -17,12 +17,13 @@ export type Token = {
   email?: string;
 };
 
-const BASE = 'http://127.0.0.1:8000';
+const BASE = "http://127.0.0.1:8000";
 
 async function handleResponse(res: Response) {
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`Request failed: ${res.status} ${res.statusText} ${text}`);
+    const text = await res.text().catch(() => "");
+    const errorData = JSON.parse(text);
+    throw new Error(errorData.detail);
   }
   const data = await res.json().catch(() => ({}));
   return data;
@@ -30,8 +31,8 @@ async function handleResponse(res: Response) {
 
 export async function signup(payload: SignUpPayload): Promise<Token> {
   const res = await fetch(`${BASE}/auth/signup`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
   return (await handleResponse(res)) as Token;
@@ -39,8 +40,8 @@ export async function signup(payload: SignUpPayload): Promise<Token> {
 
 export async function login(payload: LoginPayload): Promise<Token> {
   const res = await fetch(`${BASE}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
   return (await handleResponse(res)) as Token;
@@ -48,7 +49,7 @@ export async function login(payload: LoginPayload): Promise<Token> {
 
 export async function authenticate(accessToken: string): Promise<Token> {
   const res = await fetch(`${BASE}/auth/authenticate`, {
-    method: 'GET',
+    method: "GET",
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   return (await handleResponse(res)) as Token;

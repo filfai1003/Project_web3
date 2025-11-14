@@ -17,5 +17,4 @@ COPY backend/ ./backend/
 
 EXPOSE 8000
 
-# Use uvicorn with reload in dev; in production remove --reload
 CMD ["uvicorn","backend.app.main:app","--host","0.0.0.0","--port","8000","--reload"]
