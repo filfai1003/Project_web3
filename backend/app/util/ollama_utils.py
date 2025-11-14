@@ -4,7 +4,6 @@ from ..core.config import settings
 
 
 def stream_receive_message(messages: list[dict], model: str | None = None):
-    # TODO add firs prompt
     model = model or settings.DEFAULT_MODEL
     collected = []
     try:
