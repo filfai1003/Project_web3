@@ -9,6 +9,7 @@
   let loadingMine = false;
   let errorAll: string | null = null;
   let errorMine: string | null = null;
+  let deletingGameId: string | null = null;
 
   let communityGames: Game[] = [];
   let personalGames: Game[] = [];
@@ -61,6 +62,44 @@
       loadingMine = false;
     }
   }
+
+  async function deleteGame(gameId: string, event: MouseEvent) {
+    event.preventDefault();
+    
+    if (!confirm('Are you sure you want to delete this game? This action cannot be undone.')) {
+      return;
+    }
+
+    deletingGameId = gameId;
+    errorMine = null;
+
+    try {
+      const token = getCookie('token');
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      const response = await fetch(`http://127.0.0.1:8000/game/${gameId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`Failed to delete game: ${response.status} ${text}`);
+      }
+
+      // Recharger les deux listes après suppression
+      await Promise.all([loadPersonal(), loadCommunity()]);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      errorMine = message || 'Unable to delete the game.';
+    } finally {
+      deletingGameId = null;
+    }
+  }
 </script>
 
 <section class="games-shell">
@@ -89,13 +128,27 @@
       {:else}
         <div class="games-grid">
           {#each personalGames as game (game.game_id)}
-            <a class="game-card" href={`/games/${game.game_id}`}>
-              <div class="card-title">{game.title}</div>
-              <div class="card-meta">
-                <span>{game.interactions.length} interactions</span>
-                <span class="hint">Continue adventure</span>
-              </div>
-            </a>
+            <div class="game-card-wrapper">
+              <button
+                class="delete-btn"
+                on:click={(e) => deleteGame(game.game_id, e)}
+                disabled={deletingGameId === game.game_id}
+                aria-label="Delete game"
+              >
+                {#if deletingGameId === game.game_id}
+                  ...
+                {:else}
+                  Delete
+                {/if}
+              </button>
+              <a class="game-card" href={`/games/${game.game_id}`}>
+                <div class="card-title">{game.title}</div>
+                <div class="card-meta">
+                  <span>{game.interactions.length} interactions</span>
+                  <span class="hint">Continue adventure</span>
+                </div>
+              </a>
+            </div>
           {/each}
         </div>
       {/if}
