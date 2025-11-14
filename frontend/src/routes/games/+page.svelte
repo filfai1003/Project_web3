@@ -114,7 +114,7 @@
             <div class="game-card-wrapper">
               <button
                 class="delete-btn"
-                on:click={(e) => deleteGame(game.game_id, e)}
+                on:click={() => deleteGame(game.game_id)}
                 aria-label="Delete game"
               >
                 Delete
