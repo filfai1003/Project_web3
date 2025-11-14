@@ -1,15 +1,18 @@
 <script lang="ts">
-  import '../../style/games.css';
-  import type { Game } from '../../api/games';
-  import { fetchGames, fetchGamesByOwner, deleteGameById } from '../../api/games';
-  import { getCookie } from '../../utils/cookies';
-  import { onMount } from 'svelte';
+  import "../../style/games.css";
+  import type { Game } from "../../api/games";
+  import {
+    fetchGames,
+    fetchGamesByOwner,
+    deleteGameById,
+  } from "../../api/games";
+  import { getCookie } from "../../utils/cookies";
+  import { onMount } from "svelte";
 
   let loadingAll = true;
   let loadingMine = false;
   let errorAll: string | null = null;
   let errorMine: string | null = null;
-  let deletingGameId: string | null = null;
 
   let communityGames: Game[] = [];
   let personalGames: Game[] = [];
@@ -25,8 +28,10 @@
   function setInitialView() {
     try {
       const params = new URLSearchParams(window.location.search);
-      if (params.get('view') === 'mine') {
-        document.getElementById('personal-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (params.get("view") === "mine") {
+        document
+          .getElementById("personal-section")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     } catch (e) {}
   }
@@ -37,7 +42,7 @@
       communityGames = await fetchGames();
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      errorAll = message || 'Unable to load games right now.';
+      errorAll = message || "Unable to load games right now.";
     } finally {
       loadingAll = false;
     }
@@ -46,8 +51,8 @@
   async function loadPersonal() {
     errorMine = null;
     try {
-      const token = getCookie('token');
-      const ownerId = getCookie('user_id');
+      const token = getCookie("token");
+      const ownerId = getCookie("user_id");
       hasAuth = Boolean(token && ownerId);
       if (!hasAuth || !token || !ownerId) {
         personalGames = [];
@@ -57,39 +62,27 @@
       personalGames = await fetchGamesByOwner(ownerId, token);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      errorMine = message || 'Unable to load your games.';
+      errorMine = message || "Unable to load your games.";
     } finally {
       loadingMine = false;
     }
   }
 
-async function deleteGame(gameId: string, event: MouseEvent) {
-  event.preventDefault();
-  
-  errorMine = null;
-
-  try {
-    const token = getCookie('token');
-    const ownerId = getCookie('user_id');
-    const isAuth = Boolean(token && ownerId);
-    
-    if (!isAuth || !token || !ownerId) {
-      throw new Error('Authentication required');
+  async function deleteGame(gameId: string) {
+    errorMine = null;
+    try {
+      const token = getCookie("token");
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+      await deleteGameById(gameId, token);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      errorMine = message || "Unable to delete the game.";
     }
-
-    deletingGameId = gameId;
-    
-    await deleteGameById(gameId, token);
-    
-    await loadPersonal();
-    await loadCommunity();
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    errorMine = message || 'Unable to delete the game.';
-  } finally {
-    deletingGameId = null;
+    loadPersonal();
+    loadCommunity();
   }
-}
 </script>
 
 <section class="games-shell">
@@ -98,7 +91,7 @@ async function deleteGame(gameId: string, event: MouseEvent) {
       <h1>Your adventure hub</h1>
       <p>Pick up your stories or dive into fresh community-made quests.</p>
     </div>
-  <a class="create" href="/games/new">Start a new adventure</a>
+    <a class="create" href="/games/new">Start a new adventure</a>
   </header>
 
   <div class="games-sections">
@@ -122,14 +115,9 @@ async function deleteGame(gameId: string, event: MouseEvent) {
               <button
                 class="delete-btn"
                 on:click={(e) => deleteGame(game.game_id, e)}
-                disabled={deletingGameId === game.game_id}
                 aria-label="Delete game"
               >
-                {#if deletingGameId === game.game_id}
-                  ...
-                {:else}
-                  Delete
-                {/if}
+                Delete
               </button>
               <a class="game-card" href={`/games/${game.game_id}`}>
                 <div class="card-title">{game.title}</div>
@@ -155,7 +143,9 @@ async function deleteGame(gameId: string, event: MouseEvent) {
       {:else if errorAll}
         <div class="state error">{errorAll}</div>
       {:else if communityGames.length === 0}
-        <div class="state">No games available yet. Be the first to create one!</div>
+        <div class="state">
+          No games available yet. Be the first to create one!
+        </div>
       {:else}
         <div class="games-grid">
           {#each communityGames as game (game.game_id)}
