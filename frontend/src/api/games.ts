@@ -63,3 +63,14 @@ export async function fetchGameById(gameId: string, accessToken?: string): Promi
 	const data = await res.json();
 	return data as Game;
 }
+
+export async function deleteGameById(gameId: string, accessToken?: string): Promise<void> {
+	const headers: Record<string, string> = {};
+	if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+
+	const res = await fetch(`${BASE}/game/${encodeURIComponent(gameId)}`, { method: 'DELETE', headers });
+	if (!res.ok) {
+		const text = await res.text().catch(() => '');
+		throw new Error(`Failed to delete game: ${res.status} ${res.statusText} ${text}`);
+	}
+}
