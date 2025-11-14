@@ -1,7 +1,7 @@
 <script lang="ts">
   import '../../style/games.css';
   import type { Game } from '../../api/games';
-  import { fetchGames, fetchGamesByOwner } from '../../api/games';
+  import { fetchGames, fetchGamesByOwner, deleteGameById } from '../../api/games';
   import { getCookie } from '../../utils/cookies';
   import { onMount } from 'svelte';
 
@@ -63,43 +63,33 @@
     }
   }
 
-  async function deleteGame(gameId: string, event: MouseEvent) {
-    event.preventDefault();
+async function deleteGame(gameId: string, event: MouseEvent) {
+  event.preventDefault();
+  
+  errorMine = null;
+
+  try {
+    const token = getCookie('token');
+    const ownerId = getCookie('user_id');
+    const isAuth = Boolean(token && ownerId);
     
-    if (!confirm('Are you sure you want to delete this game? This action cannot be undone.')) {
-      return;
+    if (!isAuth || !token || !ownerId) {
+      throw new Error('Authentication required');
     }
 
     deletingGameId = gameId;
-    errorMine = null;
-
-    try {
-      const token = getCookie('token');
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      const response = await fetch(`http://127.0.0.1:8000/game/${gameId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        const text = await response.text().catch(() => '');
-        throw new Error(`Failed to delete game: ${response.status} ${text}`);
-      }
-
-      // Recharger les deux listes après suppression
-      await Promise.all([loadPersonal(), loadCommunity()]);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      errorMine = message || 'Unable to delete the game.';
-    } finally {
-      deletingGameId = null;
-    }
+    
+    await deleteGameById(gameId, token);
+    
+    await loadPersonal();
+    await loadCommunity();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    errorMine = message || 'Unable to delete the game.';
+  } finally {
+    deletingGameId = null;
   }
+}
 </script>
 
 <section class="games-shell">
