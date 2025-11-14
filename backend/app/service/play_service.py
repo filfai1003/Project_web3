@@ -19,9 +19,7 @@ def player_play(db: Session, game_id: str, message: str, token_user_id: str) -> 
         raise ValueError("Game not found")
     if game.owner_id != token_user_id:
         raise PermissionError("Not the owner")
-    user = user_repo.get_user_by_id(db, token_user_id)
-    sender = user.username or "player"
-    inter = game_repo.add_interaction(db, game_id=game_id, sender=sender, content=message)
+    inter = game_repo.add_interaction(db, game_id=game_id, sender="user", content=message)
     return {"interaction_id": inter.interaction_id, "sender": inter.sender, "content": inter.content, "created_at": inter.created_at.isoformat()}
 
 
@@ -44,7 +42,7 @@ def narrator_play(db: Session, game_id: str, token_user_id: str) -> Dict:
         if interactions
         else "Begin an exciting adventure as the narrator, establishing the setting and inviting the player to act."
     )
-    messages.append({"role": "user", "content": request_prompt})
+    messages.append({"role": "system", "content": request_prompt})
 
     gen = stream_receive_message(messages)
     try:
