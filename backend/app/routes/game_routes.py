@@ -29,7 +29,7 @@ def create_game(title: str, request: Request, db: Session = Depends(get_db)):
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
     except OperationalError as e:
-        raise HTTPException(status_code=503, detail="Database busy, riprova tra pochi istanti.")
+        raise HTTPException(status_code=503, detail="Database busy, please try again in a few moments.")
 
 @game_router.get("/{game_id}", response_model=GameOut)
 def get_game(game_id: str, db: Session = Depends(get_db)):
