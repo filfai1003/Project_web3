@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -11,17 +11,11 @@ play_router = APIRouter(prefix="/play", tags=["play"])
 
 
 @play_router.post("/player", response_model=messageOut)
-def player_play(message: messageIn, authorization: str = Header(None), db: Session = Depends(get_db)):
-    if not authorization:
+def player_play(message: messageIn, request: Request, db: Session = Depends(get_db)):
+    token = request.cookies.get('access_token')
+    if not token:
         from fastapi import HTTPException
-        raise HTTPException(status_code=401, detail="Missing Authorization header")
-    try:
-        scheme, token = authorization.split()
-        if scheme.lower() != "bearer":
-            raise ValueError("Invalid auth scheme")
-    except Exception:
-        from fastapi import HTTPException
-        raise HTTPException(status_code=401, detail="Invalid Authorization header")
+        raise HTTPException(status_code=401, detail="Missing auth cookie")
     try:
         auth_info = oauth_service.authenticate(token, db)
         user_id = auth_info.get("user_id")
@@ -37,17 +31,11 @@ def player_play(message: messageIn, authorization: str = Header(None), db: Sessi
         raise HTTPException(status_code=503, detail=str(e))
 
 @play_router.get("/narrator/{game_id}")
-def narrator_play(game_id: str, authorization: str = Header(None), db: Session = Depends(get_db)):
-    if not authorization:
+def narrator_play(game_id: str, request: Request, db: Session = Depends(get_db)):
+    token = request.cookies.get('access_token')
+    if not token:
         from fastapi import HTTPException
-        raise HTTPException(status_code=401, detail="Missing Authorization header")
-    try:
-        scheme, token = authorization.split()
-        if scheme.lower() != "bearer":
-            raise ValueError("Invalid auth scheme")
-    except Exception:
-        from fastapi import HTTPException
-        raise HTTPException(status_code=401, detail="Invalid Authorization header")
+        raise HTTPException(status_code=401, detail="Missing auth cookie")
     try:
         auth_info = oauth_service.authenticate(token, db)
         user_id = auth_info.get("user_id")
