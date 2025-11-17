@@ -2,7 +2,7 @@ import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ cookies }) => {
   try {
-    const token = cookies.get('token');
+    const token = cookies.get('access_token');
     const username = cookies.get('username');
     const email = cookies.get('email');
     const user_id = cookies.get('user_id');
@@ -15,7 +15,7 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
 
     return {
       initialAuth: {
-        loggedIn: !!token,
+        loggedIn: !!token || !!username || !!user_id,
         profile
       }
     };

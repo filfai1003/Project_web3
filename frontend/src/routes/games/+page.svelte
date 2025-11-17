@@ -51,15 +51,14 @@
   async function loadPersonal() {
     errorMine = null;
     try {
-      const token = getCookie("token");
       const ownerId = getCookie("user_id");
-      hasAuth = Boolean(token && ownerId);
-      if (!hasAuth || !token || !ownerId) {
+      hasAuth = Boolean(ownerId);
+      if (!hasAuth || !ownerId) {
         personalGames = [];
         return;
       }
       loadingMine = true;
-      personalGames = await fetchGamesByOwner(ownerId, token);
+      personalGames = await fetchGamesByOwner(ownerId);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       errorMine = message || "Unable to load your games.";
@@ -71,11 +70,11 @@
   async function deleteGame(gameId: string) {
     errorMine = null;
     try {
-      const token = getCookie("token");
-      if (!token) {
-        throw new Error("Authentication required");
+      const ownerId = getCookie('user_id');
+      if (!ownerId) {
+        throw new Error('Authentication required');
       }
-      await deleteGameById(gameId, token);
+      await deleteGameById(gameId);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       errorMine = message || "Unable to delete the game.";

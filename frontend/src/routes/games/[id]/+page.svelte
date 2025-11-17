@@ -60,8 +60,9 @@
 
 	function refreshAuth() {
 		try {
-			accessToken = getCookie('token') ?? undefined;
-			hasAuth = Boolean(accessToken);
+			// HttpOnly token not readable from JS; check profile cookies to determine auth
+			accessToken = undefined;
+			hasAuth = Boolean(getCookie('username') || getCookie('user_id'));
 		} catch (e) {
 			accessToken = undefined;
 			hasAuth = false;
@@ -73,7 +74,7 @@
 		loadingGame = true;
 		pageError = null;
 		try {
-			const game = await fetchGameById(gameId, accessToken);
+			const game = await fetchGameById(gameId);
 			title = game.title;
 			updateDocumentTitle(title);
 			interactions = game.interactions ?? [];
@@ -106,7 +107,7 @@
 	}
 
 	async function sendInteraction(message: string) {
-		if (!accessToken) {
+		if (!hasAuth) {
 			composerError = "Effettua il login per inviare un'interazione.";
 			focusInput();
 			return;
@@ -126,7 +127,7 @@
 		await maybeAutoScroll('smooth');
 
 		try {
-			const response = await playerPlay(gameId, message, accessToken);
+			const response = await playerPlay(gameId, message);
 			const confirmed: Interaction = {
 				sender: response.sender,
 				content: response.content,
@@ -193,7 +194,6 @@
 						void scrollToBottom('smooth');
 					}
 				},
-				accessToken,
 			);
 			if (markerDetected) {
 				const payload = serializedInteraction.trim();

@@ -11,13 +11,13 @@
     error = null;
     loading = true;
     try {
-      const token = getCookie('token');
-      if (!token) {
-        window.location.href = '/oauth';
-        return;
-      }
+        const hasAuth = !!getCookie('username') || !!getCookie('user_id');
+        if (!hasAuth) {
+          window.location.href = '/oauth';
+          return;
+        }
 
-      const g = await createGame(title, token);
+        const g = await createGame(title);
       try { window.location.href = '/games/' + g.game_id; } catch (e) { window.location.href = '/games'; }
     } catch (e) {
       error = (e as Error)?.message ?? String(e);
