@@ -32,8 +32,10 @@ curl -s -X POST "http://127.0.0.1:8000/auth/login" -H "Content-Type: application
 
 4) Authenticate — validate/refresh token
 
+This project stores the access token in an HttpOnly cookie. Use a browser or include the cookie in curl with `--cookie`.
+
 ```bash
-curl -s -X GET "http://127.0.0.1:8000/auth/authenticate" -H "Authorization: Bearer <TOKEN>"
+curl -s -X GET "http://127.0.0.1:8000/auth/authenticate" --cookie "access_token=<TOKEN>"
 ```
 
 ## user
@@ -41,13 +43,13 @@ curl -s -X GET "http://127.0.0.1:8000/auth/authenticate" -H "Authorization: Bear
 1) Get user by username — retrieve user public info by username
 
 ```bash
-curl -s -X GET "http://127.0.0.1:8000/user/username/filfai" -H "Authorization: Bearer <TOKEN>"
+curl -s -X GET "http://127.0.0.1:8000/user/username/filfai" --cookie "access_token=<TOKEN>"
 ```
 
 2) Get user — retrieve user public info
 
 ```bash
-curl -s -X GET "http://127.0.0.1:8000/user/<USER_ID>" -H "Authorization: Bearer <TOKEN>"
+curl -s -X GET "http://127.0.0.1:8000/user/<USER_ID>" --cookie "access_token=<TOKEN>"
 ```
 
 ## game
@@ -61,7 +63,7 @@ curl -s -X GET "http://127.0.0.1:8000/game/"
 2) Create a game
 
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/game/?title=MyNewGame" -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>"
+curl -s -X POST "http://127.0.0.1:8000/game/?title=MyNewGame" -H "Content-Type: application/json" --cookie "access_token=<TOKEN>"
 ```
 
 3) Get a game by id
@@ -79,7 +81,7 @@ curl -s -X GET "http://127.0.0.1:8000/game/owner/<OWNER_ID>"
 5) Delete a game
 
 ```bash
-curl -s -X DELETE "http://127.0.0.1:8000/game/<GAME_ID>" -H "Authorization: Bearer <TOKEN>"
+curl -s -X DELETE "http://127.0.0.1:8000/game/<GAME_ID>" --cookie "access_token=<TOKEN>"
 ```
 
 ## play
@@ -87,11 +89,11 @@ curl -s -X DELETE "http://127.0.0.1:8000/game/<GAME_ID>" -H "Authorization: Bear
 1) Player sends a message
 
 ```bash
-curl -s -X POST "http://127.0.0.1:8000/play/player" -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>" -d '{"game_id":"<GAME_ID>", "message":"I open the wooden chest and look inside."}'
+curl -s -X POST "http://127.0.0.1:8000/play/player" -H "Content-Type: application/json" --cookie "access_token=<TOKEN>" -d '{"game_id":"<GAME_ID>", "message":"I open the wooden chest and look inside."}'
 ```
 
 2) Narrator (AI) generates the next reply
 
 ```bash
-curl -s -X GET "http://127.0.0.1:8000/play/narrator/<GAME_ID>" -H "Authorization: Bearer <TOKEN>"
+curl -s -X GET "http://127.0.0.1:8000/play/narrator/<GAME_ID>" --cookie "access_token=<TOKEN>"
 ```
