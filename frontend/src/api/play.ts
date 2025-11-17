@@ -7,12 +7,11 @@ export type PlayMessageOut = {
   created_at: string;
 };
 
-export async function playerPlay(gameId: string, message: string, accessToken?: string): Promise<PlayMessageOut> {
+export async function playerPlay(gameId: string, message: string): Promise<PlayMessageOut> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
 
   const body = { game_id: gameId, message };
-  const res = await fetch(`${BASE}/play/player`, { method: 'POST', headers, body: JSON.stringify(body) });
+  const res = await fetch(`${BASE}/play/player`, { method: 'POST', headers, body: JSON.stringify(body), credentials: 'include' });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(`Failed to send player message: ${res.status} ${res.statusText} ${text}`);
@@ -21,11 +20,8 @@ export async function playerPlay(gameId: string, message: string, accessToken?: 
   return data as PlayMessageOut;
 }
 
-export async function narratorPlay(gameId: string, accessToken?: string): Promise<string> {
-  const headers: Record<string, string> = {};
-  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
-
-  const res = await fetch(`${BASE}/play/narrator/${encodeURIComponent(gameId)}`, { method: 'GET', headers });
+export async function narratorPlay(gameId: string): Promise<string> {
+  const res = await fetch(`${BASE}/play/narrator/${encodeURIComponent(gameId)}`, { method: 'GET', credentials: 'include' });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(`Failed to request narrator: ${res.status} ${res.statusText} ${text}`);
@@ -34,11 +30,8 @@ export async function narratorPlay(gameId: string, accessToken?: string): Promis
   return data;
 }
 
-export async function narratorPlayStream(gameId: string, onMessage: (message: string) => void, accessToken?: string): Promise<void> {
-  const headers: Record<string, string> = {};
-  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
-
-  const res = await fetch(`${BASE}/play/narrator/${encodeURIComponent(gameId)}`, { method: 'GET', headers });
+export async function narratorPlayStream(gameId: string, onMessage: (message: string) => void): Promise<void> {
+  const res = await fetch(`${BASE}/play/narrator/${encodeURIComponent(gameId)}`, { method: 'GET', credentials: 'include' });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(`Failed to request narrator: ${res.status} ${res.statusText} ${text}`);

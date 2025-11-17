@@ -60,8 +60,9 @@
 
 	function refreshAuth() {
 		try {
-			accessToken = getCookie('token') ?? undefined;
-			hasAuth = Boolean(accessToken);
+			// HttpOnly token not readable from JS; check profile cookies to determine auth
+			accessToken = undefined;
+			hasAuth = Boolean(getCookie('username') || getCookie('user_id'));
 		} catch (e) {
 			accessToken = undefined;
 			hasAuth = false;
@@ -73,14 +74,14 @@
 		loadingGame = true;
 		pageError = null;
 		try {
-			const game = await fetchGameById(gameId, accessToken);
+			const game = await fetchGameById(gameId);
 			title = game.title;
 			updateDocumentTitle(title);
 			interactions = game.interactions ?? [];
 			autoScroll = true;
 		} catch (err) {
 			const message = err instanceof Error ? err.message : String(err);
-			pageError = message || 'Impossibile caricare la partita.';
+			pageError = message || 'Unable to load the game.';
 		} finally {
 			loadingGame = false;
 		}
@@ -106,8 +107,8 @@
 	}
 
 	async function sendInteraction(message: string) {
-		if (!accessToken) {
-			composerError = "Effettua il login per inviare un'interazione.";
+		if (!hasAuth) {
+			composerError = "Please log in to send an interaction.";
 			focusInput();
 			return;
 		}
@@ -126,7 +127,7 @@
 		await maybeAutoScroll('smooth');
 
 		try {
-			const response = await playerPlay(gameId, message, accessToken);
+			const response = await playerPlay(gameId, message);
 			const confirmed: Interaction = {
 				sender: response.sender,
 				content: response.content,
@@ -136,7 +137,7 @@
 			interactions = interactions.map((entry, index) => (index === insertIndex ? confirmed : entry));
 		} catch (err) {
 			const messageErr = err instanceof Error ? err.message : String(err);
-			composerError = messageErr || 'Invio non riuscito.';
+			composerError = messageErr || 'Failed to send.';
 			interactions = previous;
 			inputValue = message;
 		} finally {
@@ -193,7 +194,6 @@
 						void scrollToBottom('smooth');
 					}
 				},
-				accessToken,
 			);
 			if (markerDetected) {
 				const payload = serializedInteraction.trim();
@@ -215,7 +215,7 @@
 			);
 		} catch (err) {
 			const messageErr = err instanceof Error ? err.message : String(err);
-			composerError = messageErr || 'Narratore non disponibile.';
+			composerError = messageErr || 'Narrator unavailable.';
 			if (!aggregated) {
 				interactions = interactions.slice(0, -1);
 			}
@@ -228,8 +228,8 @@
 	}
 
 	function formatSender(sender: string) {
-		if (sender.toLowerCase() === 'player') return 'Giocatore';
-		if (sender.toLowerCase() === 'narrator') return 'Narratore';
+		if (sender.toLowerCase() === 'player') return 'Player';
+		if (sender.toLowerCase() === 'narrator') return 'Narrator';
 		return sender;
 	}
 
@@ -332,7 +332,7 @@
 	{:else}
 			<div class="game-feed" bind:this={feedEl}>
 			{#if interactions.length === 0}
-				<div class="empty-state">Nessuna interazione ancora. Inizia tu oppure avvia il narratore.</div>
+				<div class="empty-state">No interactions yet. Start one or start the narrator.</div>
 			{:else}
 				{#each interactions as interaction, index (index)}
 					<article class="message" class:player={interaction.sender.toLowerCase() === 'player'} class:narrator={interaction.sender.toLowerCase() !== 'player'}>
@@ -350,13 +350,13 @@
 		</div>
 
 		<form class="composer" on:submit|preventDefault={submit}>
-			<label class="sr-only" for="interaction-input">Nuova interazione</label>
+			<label class="sr-only" for="interaction-input">New interaction</label>
 			<textarea
 				id="interaction-input"
 				bind:this={inputEl}
 				bind:value={inputValue}
 				rows="1"
-				placeholder="Scrivi la prossima mossa oppure lascia parlare il narratore..."
+				placeholder="Write the next move or let the narrator speak..."
 				on:keydown={handleKeyDown}
 				autocomplete="off"
 			></textarea>
@@ -366,13 +366,13 @@
 				data-mode={hasInput() ? 'send' : 'narrate'}
 				disabled={processing}
 			>
-				<span class="action-label action-send">Invia interazione</span>
-				<span class="action-label action-narrate">Avvia narratore</span>
+				<span class="action-label action-send">Send interaction</span>
+				<span class="action-label action-narrate">Start narrator</span>
 			</button>
 		</form>
 
 		{#if !hasAuth}
-			<p class="composer-hint">Accedi per registrare le tue mosse e mantenerle salvate.</p>
+			<p class="composer-hint">Log in to record your moves and keep them saved.</p>
 		{/if}
 
 		{#if composerError}

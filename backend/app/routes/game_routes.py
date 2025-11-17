@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import OperationalError
 
@@ -18,15 +18,10 @@ def get_games(db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
 @game_router.post("/", response_model=GameOut)
-def create_game(title: str, authorization: str = Header(None), db: Session = Depends(get_db)):
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Missing Authorization header")
-    try:
-        scheme, token = authorization.split()
-        if scheme.lower() != "bearer":
-            raise ValueError("Invalid auth scheme")
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid Authorization header")
+def create_game(title: str, request: Request, db: Session = Depends(get_db)):
+    token = request.cookies.get('access_token')
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing auth cookie")
     try:
         auth_info = oauth_service.authenticate(token, db)
         owner_id = auth_info.get("user_id")
@@ -34,7 +29,7 @@ def create_game(title: str, authorization: str = Header(None), db: Session = Dep
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
     except OperationalError as e:
-        raise HTTPException(status_code=503, detail="Database busy, riprova tra pochi istanti.")
+        raise HTTPException(status_code=503, detail="Database busy, please try again in a few moments.")
 
 @game_router.get("/{game_id}", response_model=GameOut)
 def get_game(game_id: str, db: Session = Depends(get_db)):
@@ -52,15 +47,10 @@ def get_games_by_owner(owner_id: str, db: Session = Depends(get_db)):
 
 
 @game_router.delete("/{game_id}")
-def delete_game(game_id: str, authorization: str = Header(None), db: Session = Depends(get_db)):
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Missing Authorization header")
-    try:
-        scheme, token = authorization.split()
-        if scheme.lower() != "bearer":
-            raise ValueError("Invalid auth scheme")
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid Authorization header")
+def delete_game(game_id: str, request: Request, db: Session = Depends(get_db)):
+    token = request.cookies.get('access_token')
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing auth cookie")
     try:
         auth_info = oauth_service.authenticate(token, db)
         token_user_id = auth_info.get("user_id")
