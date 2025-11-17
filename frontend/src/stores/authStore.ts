@@ -1,7 +1,8 @@
 import { writable } from 'svelte/store';
 import { setCookie, getCookie, deleteCookie } from '../utils/cookies';
+import { logout as apiLogout } from '../api/oauth';
 
-const initial = !!getCookie('token');
+const initial = !!getCookie('username') || !!getCookie('user_id');
 export const loggedIn = writable<boolean>(initial);
 
 export type UserProfile = { user_id?: string; username?: string; email?: string } | null;
@@ -14,6 +15,8 @@ export function setUserProfile(p: UserProfile) {
     if (p?.email) setCookie('email', p.email, 30);
     if (p?.user_id) setCookie('user_id', String(p.user_id), 30);
   } catch (e) {}
+  // mark as logged in in client state
+  loggedIn.set(true);
 }
 
 export function clearUserProfile() {
@@ -22,17 +25,17 @@ export function clearUserProfile() {
     deleteCookie('username');
     deleteCookie('email');
     deleteCookie('user_id');
-    deleteCookie('token');
+    // token is HttpOnly and cleared via server logout
   } catch (e) {}
+  loggedIn.set(false);
 }
 
 export function restoreProfileFromCookie() {
   try {
-    const token = getCookie('token');
     const username = getCookie('username');
     const email = getCookie('email');
     const user_id = getCookie('user_id');
-    if (token) {
+    if (username || email || user_id) {
       loggedIn.set(true);
     }
     if (username || email || user_id) {
@@ -42,17 +45,16 @@ export function restoreProfileFromCookie() {
   }
 }
 
-export function loginWithToken(token: string) {
-  try { setCookie('token', token, 30); } catch (e) {}
-  loggedIn.set(true);
-}
-
 export function logout() {
+  // call server logout to clear HttpOnly cookie, then clear client state
+  try {
+    void apiLogout();
+  } catch (e) {}
   clearUserProfile();
   loggedIn.set(false);
   try { window.location.href = '/'; } catch (e) {}
 }
 
 export function initAuth() {
-  loggedIn.set(!!getCookie('token'));
+  loggedIn.set(!!getCookie('username') || !!getCookie('user_id'));
 }

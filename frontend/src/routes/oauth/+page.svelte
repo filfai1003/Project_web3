@@ -2,7 +2,7 @@
 	import '../../style/oauth.css';
 	import type { LoginPayload, SignUpPayload, Token } from '../../api/oauth';
 	import { login, signup } from '../../api/oauth';
-	import { loginWithToken, setUserProfile } from '../../stores/authStore';
+	import { setUserProfile } from '../../stores/authStore';
 	import { getCookie } from '../../utils/cookies';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
@@ -26,9 +26,10 @@
 
 	onMount(() => {
 		try {
-					if (getCookie('token')) {
-						void goto('/games?view=mine');
-			}
+					// if profile cookies exist, redirect to user's games
+					if (getCookie('username') || getCookie('user_id')) {
+							void goto('/games?view=mine');
+					}
 		} catch (e) {}
 	});
 
@@ -65,7 +66,7 @@
 				token = await signup(payload);
 			}
 
-			loginWithToken(token.access_token);
+			// server sets HttpOnly access token cookie; frontend receives profile in response
 			setUserProfile({ user_id: token.user_id, username: token.username, email: token.email });
 			await goto('/games?view=mine');
 		} catch (err) {
