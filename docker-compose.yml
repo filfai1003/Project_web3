@@ -26,15 +26,9 @@ services:
 
   ollama:
     image: ollama/ollama:latest
-    
-  ollama-pull:
-    image: ollama/ollama:latest
-    depends_on:
-      - ollama
-    environment:
-      - OLLAMA_HOST=http://ollama:11434
     entrypoint: /bin/sh
-    command: -c "sleep 5 && ollama pull gemma3:4b"
+    # Gemma 3:4b prend beaucoup de temps à installer, le gemma2:2b prend moins de temps
+    command: -c "ollama serve & sleep 5 && ollama pull gemma3:4b && wait"
 
 volumes:
   ollama_data:
