@@ -60,7 +60,6 @@
 
 	function refreshAuth() {
 		try {
-			// HttpOnly token not readable from JS; check profile cookies to determine auth
 			accessToken = undefined;
 			hasAuth = Boolean(getCookie('username') || getCookie('user_id'));
 		} catch (e) {
@@ -326,7 +325,7 @@
 
 <div class="game-shell">
 	{#if loadingGame}
-		<div class="state">Caricamento della partita...</div>
+		<div class="state">Loading...</div>
 	{:else if pageError}
 		<div class="state error">{pageError}</div>
 	{:else}
